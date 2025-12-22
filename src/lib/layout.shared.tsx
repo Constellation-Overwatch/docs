@@ -8,6 +8,10 @@ export function baseOptions(): BaseLayoutProps {
         <div className="flex items-center gap-2">
           <img src="/c4-logo.png" alt="Constellation Overwatch" className="w-6 h-6" />
           <span className="font-semibold">Constellation Overwatch</span>
+        </div>
+      ),
+      children: (
+        <div className="flex flex-1 justify-end items-center mr-4">
           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{VERSION}</span>
         </div>
       ),
