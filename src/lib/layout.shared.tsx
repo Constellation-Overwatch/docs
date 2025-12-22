@@ -6,7 +6,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <div className="flex items-center gap-2">
-          <img src="/c4-logo.png" alt="Constellation Overwatch" className="w-6 h-6" />
+          <img src="/images/c4-logo.png" alt="Constellation Overwatch" className="w-6 h-6" />
           <span className="font-semibold">Constellation Overwatch</span>
         </div>
       ),

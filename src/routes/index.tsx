@@ -10,11 +10,12 @@ export const Route = createFileRoute('/')({
 function Home() {
   return (
     <HomeLayout {...baseOptions()}>
-      <div className="container mx-auto px-4 py-20">
+      <div className="flex flex-col min-h-[calc(100vh-64px)]">
+      <div className="container mx-auto px-4 py-20 flex-1">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex flex-col items-center justify-center mb-6">
-            <img src="/c4-logo.png" alt="Constellation Overwatch" className="w-24 h-24 mb-6" />
+            <img src="/images/c4-logo.png" alt="Constellation Overwatch" className="w-24 h-24 mb-6" />
             <div>
               <h1 className="text-4xl font-bold mb-2">Constellation Overwatch</h1>
               <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{VERSION}</span>
@@ -40,9 +41,20 @@ function Home() {
 
           {/* Quick Install */}
           <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-left">
+            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-left relative group">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('curl -LsSf https://constellation-overwatch.dev/install.sh | sh');
+                }}
+                className="absolute top-3 right-3 p-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                title="Copy to clipboard"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
               <div className="text-gray-400 text-sm mb-2"># Quick Install</div>
-              <div>curl -LsSf https://constellation-overwatch.github.io/overwatch/install.sh | sh</div>
+              <div className="pr-10">curl -LsSf https://constellation-overwatch.dev/install.sh | sh</div>
             </div>
           </div>
         </div>
@@ -53,15 +65,15 @@ function Home() {
         <div className="text-center">
           <h3 className="text-lg font-semibold mb-8 text-gray-600">Powered By</h3>
           <div className="flex items-center justify-center gap-8 flex-wrap">
-            <img src="/go-logo.svg" alt="Go" className="h-8" />
-            <img src="/nats.avif" alt="NATS" className="h-8" />
-            <img src="/templ.svg" alt="Templ" className="h-8" />
-            <img src="/data-star.webp" alt="Datastar" className="h-8" />
-            <img src="/turso.svg" alt="Turso" className="h-8" />
+            <img src="/images/go-logo.svg" alt="Go" className="h-8" />
+            <img src="/images/nats.avif" alt="NATS" className="h-8" />
+            <img src="/images/templ.svg" alt="Templ" className="h-8" />
+            <img src="/images/data-star.webp" alt="Datastar" className="h-8" />
+            <img src="/images/turso.svg" alt="Turso" className="h-8" />
           </div>
         </div>
       </div>
-      <footer className="mt-20 py-8">
+      <footer className="py-8 mt-auto">
         <div className="flex flex-col items-center justify-center gap-4">
           <a
             href="https://github.com/Constellation-Overwatch/constellation-overwatch"
@@ -79,6 +91,7 @@ function Home() {
           </div>
         </div>
       </footer>
+      </div>
     </HomeLayout>
   );
 }

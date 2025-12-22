@@ -29,7 +29,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
-      { rel: 'icon', type: 'image/svg+xml', href: '/overwatch.svg' },
+      { rel: 'icon', type: 'image/svg+xml', href: '/images/overwatch.svg' },
     ],
   }),
   component: RootComponent,
