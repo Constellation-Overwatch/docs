@@ -1,0 +1,149 @@
+---
+title: Quick Start
+description: Get up and running with Constellation Overwatch in minutes
+icon: Zap
+---
+
+# Quick Start
+
+This guide will help you get Constellation Overwatch up and running in just a few minutes.
+
+## Step 1: Start the Server
+
+Once installed, start Constellation Overwatch:
+
+```bash
+# Basic start (development mode)
+overwatch
+
+# Custom port
+overwatch -port 9090
+
+# Production with secure tokens
+overwatch -api-token $(openssl rand -hex 32) -nats-token $(openssl rand -hex 32)
+```
+
+The server will start with:
+- **Web UI**: http://localhost:8080
+- **API**: http://localhost:8080/api/v1
+- **NATS**: localhost:4222
+
+### Default Credentials
+
+For development, use these default credentials:
+
+| Service | Credential | Value |
+|---------|------------|-------|
+| Web UI Password | Password | `reindustrialize` |
+| API Token | Bearer Token | `reindustrialize-dev-token` |
+| NATS Auth Token | Token | `reindustrialize-america` |
+
+<Callout type="warn">
+**Production Warning**: Always use custom tokens in production with the `-api-token` and `-nats-token` flags.
+</Callout>
+
+## Step 2: Create Your Organization
+
+Organizations group your entities (drones, robots, sensors) under a single management structure.
+
+### Option A: Web UI (Recommended)
+
+1. Navigate to: http://localhost:8080/organizations
+2. Click **"Create Organization"**
+3. Fill in the form:
+   - **Name**: Your organization name
+   - **Type**: `civilian`, `military`, or `commercial`
+   - **Description**: Brief description
+
+### Option B: API
+
+```bash
+export TOKEN="reindustrialize-dev-token"
+
+curl -X POST http://localhost:8080/api/v1/organizations \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Fleet",
+    "org_type": "civilian", 
+    "description": "My drone fleet operations"
+  }'
+```
+
+Save the `org_id` from the response!
+
+## Step 3: Register an Entity
+
+Entities represent your physical assets (drones, robots, sensors).
+
+```bash
+export TOKEN="reindustrialize-dev-token"
+export ORG_ID="your-org-id-from-step-2"
+
+curl -X POST "http://localhost:8080/api/v1/entities?org_id=$ORG_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Drone-001",
+    "entity_type": "aircraft_multirotor",
+    "description": "Primary inspection drone",
+    "metadata": {
+      "model": "DJI-M300",
+      "serial": "ABC123456"
+    }
+  }'
+```
+
+Extract the `entity_id` from the response - this is your unique namespace!
+
+## Step 4: Publish Telemetry Data
+
+Now you can publish telemetry to the global state using your `entity_id`:
+
+```bash
+export ENTITY_ID="your-entity-id-from-step-3"
+
+# Publish ontological telemetry to CONSTELLATION_GLOBAL_STATE KV bucket
+nats kv put CONSTELLATION_GLOBAL_STATE "$ENTITY_ID" \
+  '{
+    "position": {"lat": 37.7749, "lon": -122.4194, "alt": 100},
+    "orientation": {"roll": 0.1, "pitch": -0.2, "yaw": 1.5},
+    "sensors": {"temperature": 22.5, "humidity": 65, "pressure": 1013.25},
+    "state": {"battery": 85, "mode": "autonomous", "armed": true},
+    "performance": {"velocity": 5.2, "thrust": 0.7, "efficiency": 0.92}
+  }'
+```
+
+## Step 5: View Your Data
+
+Check your data in the web dashboard:
+- Navigate to: http://localhost:8080/fleet
+- Select your organization 
+- View your entity's real-time telemetry
+
+## What's Next?
+
+You now have a basic Constellation Overwatch setup! Explore these areas next:
+
+<Cards>
+  <Card
+    title="Ontological Data Design"
+    href="/docs/concepts/telemetry"
+    description="Learn how to structure your telemetry data effectively"
+  />
+  <Card
+    title="API Reference"
+    href="/docs/api"
+    description="Comprehensive API documentation and examples"
+  />
+  <Card
+    title="Integrations"
+    href="/docs/integrations"
+    description="MAVLink bridges, Vision AI, and video streaming"
+  />
+  <Card
+    title="Cloud Deployment"
+    href="/docs/deployment"
+    description="Deploy to production cloud infrastructure"
+  />
+</Cards>

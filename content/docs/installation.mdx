@@ -1,0 +1,92 @@
+---
+title: Installation
+description: Install Constellation Overwatch using our automated installer or build from source
+icon: Download
+---
+
+# Installation
+
+Get Constellation Overwatch running on your system in minutes with our automated installer or build from source for development.
+
+## Installer (Recommended)
+
+The fastest way to get started is with our automated installer:
+
+### Linux / macOS
+
+```bash
+curl -LsSf https://constellation-overwatch.github.io/overwatch/install.sh | sh
+```
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://constellation-overwatch.github.io/overwatch/install.ps1 | iex"
+```
+
+The installer will:
+- Download the latest release binary (36.2MB)
+- Install to `/usr/local/bin` (Linux/macOS) or `%USERPROFILE%\.local\bin` (Windows)
+- Add to your system PATH
+- Verify installation
+
+## Build from Source
+
+For development or custom builds:
+
+### Prerequisites
+
+- **Go 1.21+** - [Download here](https://golang.org/dl/)
+- **Task** - [Installation guide](https://taskfile.dev/installation/)
+
+### Clone and Build
+
+```bash
+git clone https://github.com/Constellation-Overwatch/constellation-overwatch.git
+cd constellation-overwatch
+
+# Install Task (if not already installed)
+# macOS
+brew install go-task/tap/go-task
+
+# Linux
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
+# Windows (requires Scoop)
+scoop install task
+
+# Start development server
+task dev
+```
+
+## Verification
+
+Verify your installation:
+
+```bash
+overwatch -version
+```
+
+You should see output similar to:
+```
+Constellation Overwatch v1.0.0
+Built: 2024-12-22T12:00:00Z
+Commit: abc123def456
+```
+
+## Next Steps
+
+With Constellation Overwatch installed, you're ready to:
+
+<Cards>
+  <Card
+    title="Quick Start"
+    href="/docs/quick-start"
+    description="Start your first server and create organizations"
+  />
+  <Card
+    title="Configuration"
+    href="/docs/configuration"
+    description="Learn about CLI options and environment variables"
+  />
+</Cards>
