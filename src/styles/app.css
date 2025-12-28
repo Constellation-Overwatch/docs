@@ -156,7 +156,7 @@ p {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 200px;
+  height: 150px;
   background: linear-gradient(to top, rgba(0, 90, 167, 0.4) 0%, transparent 100%);
 }
 
@@ -164,9 +164,9 @@ p {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 600px;
-  height: 120px;
-  margin-left: -300px;
+  width: min(600px, 100vw);
+  height: 100px;
+  transform: translateX(-50%);
   background: radial-gradient(ellipse at center bottom, rgba(0, 160, 255, 0.3) 0%, transparent 70%);
 }
 
@@ -174,10 +174,10 @@ p {
 #earth {
   position: absolute;
   left: 50%;
-  bottom: -500px;
-  width: 1200px;
-  height: 600px;
-  margin-left: -600px;
+  bottom: -400px;
+  width: min(1200px, 200vw);
+  height: min(600px, 100vw);
+  transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse at center, #1a3a52 0%, #0a1520 100%);
   box-shadow:
@@ -206,10 +206,21 @@ p {
 /* Mobile adjustments */
 @media (max-width: 768px) {
   #title {
-    top: 65%;
-    font-size: clamp(1rem, 4.5vw, 1.8rem);
-    letter-spacing: 0.15em;
-    padding-left: 0.15em;
+    display: none;
+  }
+
+  #horizon {
+    height: 100px;
+  }
+
+  #horizon .glow {
+    height: 60px;
+  }
+
+  #earth {
+    bottom: -300px;
+    width: 150vw;
+    height: 75vw;
   }
 }
 
@@ -264,14 +275,14 @@ p {
     opacity: 0;
   }
   30%, 80% {
-    letter-spacing: 40px;
-    padding-left: 40px;
+    letter-spacing: 0.35em;
+    padding-left: 0.35em;
     transform: translateY(0px);
     opacity: 1;
   }
   92%, 100% {
-    letter-spacing: 35px;
-    padding-left: 35px;
+    letter-spacing: 0.3em;
+    padding-left: 0.3em;
     transform: translateY(-4px);
     opacity: 0;
   }

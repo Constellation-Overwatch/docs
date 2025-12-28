@@ -30,13 +30,16 @@ const CosmicParallaxBg: React.FC<CosmicParallaxBgProps> = ({
   const [mediumStars, setMediumStars] = useState<string>('');
   const [bigStars, setBigStars] = useState<string>('');
 
-  // Generate random star positions
+  // Generate random star positions based on viewport size
   const generateStarBoxShadow = (count: number): string => {
+    // Use larger of viewport or minimum size for star field coverage
+    const width = Math.max(typeof window !== 'undefined' ? window.innerWidth : 2000, 2000);
+    const height = Math.max(typeof window !== 'undefined' ? window.innerHeight : 2000, 2000);
     let shadows = [];
 
     for (let i = 0; i < count; i++) {
-      const x = Math.floor(Math.random() * 2000);
-      const y = Math.floor(Math.random() * 2000);
+      const x = Math.floor(Math.random() * width);
+      const y = Math.floor(Math.random() * height);
       shadows.push(`${x}px ${y}px #FFF`);
     }
 
