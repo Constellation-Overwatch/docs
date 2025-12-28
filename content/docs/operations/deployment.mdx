@@ -1,0 +1,112 @@
+---
+title: Deployment
+description: Deploy Constellation Overwatch to production environments
+icon: Cloud
+---
+
+# Deployment
+
+Deploy Constellation Overwatch to production cloud and edge environments.
+
+## Deployment Options
+
+### Docker
+
+The simplest way to deploy Constellation Overwatch:
+
+```bash
+docker run -d \
+  --name constellation \
+  -p 8080:8080 \
+  -p 4222:4222 \
+  -v $(pwd)/data:/data \
+  -e OVERWATCH_API_TOKEN=your-secure-token \
+  -e OVERWATCH_NATS_TOKEN=your-nats-token \
+  ghcr.io/constellation-overwatch/constellation-overwatch:latest
+```
+
+### Docker Compose
+
+For multi-container deployments:
+
+```yaml
+version: '3.8'
+services:
+  constellation:
+    image: ghcr.io/constellation-overwatch/constellation-overwatch:latest
+    ports:
+      - "8080:8080"
+      - "4222:4222"
+    volumes:
+      - constellation-data:/data
+    environment:
+      - OVERWATCH_API_TOKEN=${API_TOKEN}
+      - OVERWATCH_NATS_TOKEN=${NATS_TOKEN}
+      - OVERWATCH_LOG_LEVEL=info
+    restart: unless-stopped
+
+volumes:
+  constellation-data:
+```
+
+### Kubernetes
+
+Deploy using Helm:
+
+```bash
+helm repo add constellation https://constellation-overwatch.github.io/charts
+helm install constellation constellation/constellation-overwatch \
+  --set apiToken=your-secure-token \
+  --set natsToken=your-nats-token
+```
+
+## Edge Deployment
+
+### Raspberry Pi
+
+```bash
+# Download ARM binary
+curl -LsSf https://constellation-overwatch.github.io/overwatch/install.sh | sh
+
+# Create systemd service
+sudo tee /etc/systemd/system/constellation.service << EOF
+[Unit]
+Description=Constellation Overwatch
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/overwatch
+Restart=always
+Environment=OVERWATCH_API_TOKEN=your-token
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl enable constellation
+sudo systemctl start constellation
+```
+
+### NVIDIA Jetson
+
+Optimized for edge AI workloads with GPU acceleration.
+
+```bash
+# Install with CUDA support
+./install.sh --cuda
+```
+
+## Production Checklist
+
+- [ ] Generate strong API and NATS tokens
+- [ ] Configure TLS/HTTPS termination
+- [ ] Set up persistent storage
+- [ ] Configure log aggregation
+- [ ] Enable monitoring and alerting
+- [ ] Set up backup procedures
+- [ ] Test failover and recovery
+
+## Architecture Considerations
+
+For high-availability deployments, see the [Architecture](/docs/architecture) documentation.

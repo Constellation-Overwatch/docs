@@ -1,0 +1,64 @@
+---
+title: Vision AI
+description: Real-time video intelligence for Constellation Overwatch
+icon: Eye
+---
+
+# Vision AI
+
+Real-time video intelligence and object detection integration for Constellation Overwatch.
+
+## Overview
+
+[Vision2Constellation](https://github.com/Constellation-Overwatch/vision2constellation) provides AI-powered video analysis capabilities, enabling real-time object detection, tracking, and classification at the edge.
+
+## Features
+
+- **Real-time Detection** - Low-latency object detection on video streams
+- **Edge Processing** - Run inference directly on edge devices
+- **Custom Models** - Support for custom YOLO and other detection models
+- **Event Streaming** - Push detection events to Constellation
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Constellation-Overwatch/vision2constellation.git
+cd vision2constellation
+
+# Install dependencies and run
+pip install -r requirements.txt
+python main.py
+```
+
+## Supported Models
+
+| Model | Use Case |
+| ----- | -------- |
+| YOLOv8 | General object detection |
+| YOLOv8-seg | Instance segmentation |
+| Custom | Domain-specific detection |
+
+## Integration
+
+Detection events are streamed to Constellation Overwatch in real-time:
+
+```json
+{
+  "timestamp": "2024-01-01T00:00:00Z",
+  "entity_id": "drone-001",
+  "detections": [
+    {
+      "class": "person",
+      "confidence": 0.95,
+      "bbox": [100, 200, 150, 300]
+    }
+  ]
+}
+```
+
+---
+
+<Callout type="info">
+For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/vision2constellation).
+</Callout>

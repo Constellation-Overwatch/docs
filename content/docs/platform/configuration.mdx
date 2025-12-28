@@ -1,0 +1,80 @@
+---
+title: Configuration
+description: CLI options and environment variables for Constellation Overwatch
+icon: Settings
+---
+
+# Configuration
+
+Configure Constellation Overwatch using CLI flags or environment variables.
+
+## CLI Options
+
+```bash
+overwatch [options]
+```
+
+| Flag | Default | Description |
+| ---- | ------- | ----------- |
+| `-port` | `8080` | HTTP server port |
+| `-nats-port` | `4222` | NATS server port |
+| `-api-token` | `reindustrialize-dev-token` | API bearer token |
+| `-nats-token` | `reindustrialize-america` | NATS authentication token |
+| `-db-path` | `./data/constellation.db` | SQLite database path |
+| `-log-level` | `info` | Logging level (debug, info, warn, error) |
+
+## Environment Variables
+
+All CLI options can also be set via environment variables:
+
+| Variable | CLI Flag | Description |
+| -------- | -------- | ----------- |
+| `OVERWATCH_PORT` | `-port` | HTTP server port |
+| `OVERWATCH_NATS_PORT` | `-nats-port` | NATS server port |
+| `OVERWATCH_API_TOKEN` | `-api-token` | API bearer token |
+| `OVERWATCH_NATS_TOKEN` | `-nats-token` | NATS authentication token |
+| `OVERWATCH_DB_PATH` | `-db-path` | SQLite database path |
+| `OVERWATCH_LOG_LEVEL` | `-log-level` | Logging level |
+
+## Example Configurations
+
+### Development
+
+```bash
+overwatch
+```
+
+Uses all default values for local development.
+
+### Production
+
+```bash
+overwatch \
+  -port 8080 \
+  -api-token $(openssl rand -hex 32) \
+  -nats-token $(openssl rand -hex 32) \
+  -log-level warn
+```
+
+### Docker
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -p 4222:4222 \
+  -e OVERWATCH_API_TOKEN=your-secure-token \
+  -e OVERWATCH_NATS_TOKEN=your-nats-token \
+  -v $(pwd)/data:/data \
+  constellation-overwatch
+```
+
+## Security Recommendations
+
+<Callout type="warn">
+Always use strong, randomly generated tokens in production environments.
+</Callout>
+
+- Generate tokens with at least 32 bytes of entropy
+- Never commit tokens to version control
+- Use environment variables or secrets management in production
+- Rotate tokens periodically

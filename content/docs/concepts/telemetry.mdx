@@ -1,0 +1,130 @@
+---
+title: Ontological Data Design
+description: Structuring telemetry data with ontological primitives
+icon: Database
+---
+
+# Ontological Data Design
+
+Learn how to structure your telemetry data using Constellation Overwatch's ontological data primitives.
+
+## Overview
+
+Constellation Overwatch uses an ontological approach to telemetry data, organizing sensor readings into semantic categories that reflect the physical reality of your entities.
+
+## Data Primitives
+
+### Position
+
+Geographic location in 3D space:
+
+```json
+{
+  "position": {
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "alt": 100.5
+  }
+}
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `lat` | float | Latitude in degrees |
+| `lon` | float | Longitude in degrees |
+| `alt` | float | Altitude in meters (MSL) |
+
+### Orientation
+
+Attitude in 3D space (Euler angles):
+
+```json
+{
+  "orientation": {
+    "roll": 0.1,
+    "pitch": -0.2,
+    "yaw": 1.5
+  }
+}
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `roll` | float | Roll angle in radians |
+| `pitch` | float | Pitch angle in radians |
+| `yaw` | float | Yaw/heading in radians |
+
+### Sensors
+
+Environmental and onboard sensor readings:
+
+```json
+{
+  "sensors": {
+    "temperature": 22.5,
+    "humidity": 65,
+    "pressure": 1013.25,
+    "battery_voltage": 22.2
+  }
+}
+```
+
+### State
+
+Operational state and status:
+
+```json
+{
+  "state": {
+    "battery": 85,
+    "mode": "autonomous",
+    "armed": true,
+    "health": "nominal"
+  }
+}
+```
+
+### Performance
+
+Performance metrics:
+
+```json
+{
+  "performance": {
+    "velocity": 5.2,
+    "thrust": 0.7,
+    "efficiency": 0.92
+  }
+}
+```
+
+## Complete Telemetry Payload
+
+A complete telemetry update combines all primitives:
+
+```json
+{
+  "timestamp": "2024-01-01T12:00:00Z",
+  "entity_id": "drone-001",
+  "position": {"lat": 37.7749, "lon": -122.4194, "alt": 100},
+  "orientation": {"roll": 0.1, "pitch": -0.2, "yaw": 1.5},
+  "sensors": {"temperature": 22.5, "humidity": 65, "pressure": 1013.25},
+  "state": {"battery": 85, "mode": "autonomous", "armed": true},
+  "performance": {"velocity": 5.2, "thrust": 0.7, "efficiency": 0.92}
+}
+```
+
+## Publishing Telemetry
+
+Publish to the global state KV bucket:
+
+```bash
+nats kv put CONSTELLATION_GLOBAL_STATE "$ENTITY_ID" '{"position": {...}}'
+```
+
+## Best Practices
+
+1. **Include timestamps** - Always include ISO 8601 timestamps
+2. **Use SI units** - Meters, radians, Celsius, etc.
+3. **Batch updates** - Combine related data in single updates
+4. **Validate data** - Check ranges before publishing

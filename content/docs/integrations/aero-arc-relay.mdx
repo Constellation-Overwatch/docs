@@ -1,0 +1,65 @@
+---
+title: Aero Arc Relay
+description: MAVLink relay bridge for Constellation Overwatch
+icon: Plane
+---
+
+# Aero Arc Relay
+
+MAVLink relay bridge that connects UAVs and ground control stations to Constellation Overwatch.
+
+## Overview
+
+[Aero Arc Relay](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation) provides a bridge between MAVLink-compatible flight controllers and Constellation Overwatch's data fabric, enabling real-time telemetry streaming from drones and autonomous vehicles.
+
+## Features
+
+- **MAVLink Protocol Support** - Full MAVLink v2 protocol compatibility
+- **Real-time Telemetry** - Stream position, attitude, and sensor data
+- **Bidirectional Communication** - Send commands back to vehicles
+- **Multi-vehicle Support** - Connect multiple UAVs simultaneously
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Constellation-Overwatch/aero-arc-relay2constellation.git
+cd aero-arc-relay2constellation
+
+# Build and run
+go build -o aero-arc-relay
+./aero-arc-relay
+```
+
+## Configuration
+
+Configure the relay to connect to your Constellation Overwatch instance:
+
+```yaml
+constellation:
+  host: localhost
+  port: 8080
+  token: your-api-token
+
+mavlink:
+  connection: serial:///dev/ttyUSB0:57600
+  system_id: 1
+```
+
+## Telemetry Data
+
+The relay streams the following telemetry to Constellation:
+
+| Data Type | Description |
+| --------- | ----------- |
+| Position | GPS coordinates (lat, lon, alt) |
+| Attitude | Roll, pitch, yaw angles |
+| Velocity | Ground speed and vertical speed |
+| Battery | Voltage, current, remaining capacity |
+| Status | Armed state, flight mode, health |
+
+---
+
+<Callout type="info">
+For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation).
+</Callout>

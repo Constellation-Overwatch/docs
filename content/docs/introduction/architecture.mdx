@@ -1,0 +1,51 @@
+---
+title: Architecture
+description: System architecture overview for Constellation Overwatch
+icon: Boxes
+---
+
+# Architecture
+
+System architecture overview for Constellation Overwatch.
+
+## Overview
+
+Constellation Overwatch is designed as a lightweight, edge-first data fabric that brings together telemetry, video, and AI processing in a unified platform.
+
+## System Diagram
+
+<img src="/images/d2.svg" alt="Constellation Overwatch Architecture" style={{ width: '100%', maxWidth: '900px', margin: '2rem auto', display: 'block' }} />
+
+## Core Components
+
+### Data Fabric Layer
+
+| Component | Technology | Purpose |
+| --------- | ---------- | ------- |
+| **Messaging** | NATS JetStream | Real-time pub/sub and persistent messaging |
+| **Database** | Turso (SQLite) | Embedded relational storage |
+| **API** | Go + Templ | RESTful API and server-rendered UI |
+
+### Edge Layer
+
+| Component | Purpose |
+| --------- | ------- |
+| **Aero Arc Relay** | MAVLink bridge for UAVs |
+| **Vision** | AI-powered video analysis |
+| **FFmpeg** | Low-latency video streaming |
+
+### Integration Layer
+
+| Protocol | Use Case |
+| -------- | -------- |
+| MAVLink | Drone communication |
+| RTSP/WebRTC | Video streaming |
+| REST/WebSocket | API and real-time updates |
+
+## Design Principles
+
+1. **Edge-First** - Process data as close to the source as possible
+2. **Offline-Capable** - Full functionality without internet connectivity
+3. **Security-First** - Air-gapped deployment support
+4. **Lightweight** - Minimal resource footprint for embedded systems
+5. **Interoperable** - Standard protocols and open APIs

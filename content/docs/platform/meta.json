@@ -1,0 +1,9 @@
+{
+  "title": "Platform",
+  "pages": [
+    "installation",
+    "quick-start",
+    "configuration",
+    "api"
+  ]
+}

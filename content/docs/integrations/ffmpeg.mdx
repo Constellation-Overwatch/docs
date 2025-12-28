@@ -1,0 +1,61 @@
+---
+title: FFmpeg Streaming
+description: Low-latency video streaming for Constellation Overwatch
+icon: Video
+---
+
+# FFmpeg Streaming
+
+Low-latency video streaming integration for edge devices and Constellation Overwatch.
+
+## Overview
+
+[FFmpeg2Constellation](https://github.com/Constellation-Overwatch/ffmpeg2constellation) enables low-latency video streaming from edge devices, cameras, and UAVs to the Constellation Overwatch platform.
+
+## Features
+
+- **Low Latency** - Optimized for real-time video streaming
+- **Multiple Formats** - Support for RTSP, RTMP, HLS, and WebRTC
+- **Hardware Acceleration** - GPU-accelerated encoding/decoding
+- **Adaptive Bitrate** - Dynamic quality adjustment based on network conditions
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Constellation-Overwatch/ffmpeg2constellation.git
+cd ffmpeg2constellation
+
+# Build and run
+make build
+./ffmpeg2constellation
+```
+
+## Configuration
+
+Configure video streams for your devices:
+
+```yaml
+streams:
+  - name: drone-camera
+    source: rtsp://192.168.1.100:8554/stream
+    output: webrtc
+
+  - name: ground-camera
+    source: /dev/video0
+    output: hls
+```
+
+## Streaming Protocols
+
+| Protocol | Latency | Use Case |
+| -------- | ------- | -------- |
+| WebRTC | \<100ms | Real-time control |
+| RTSP | 200-500ms | IP cameras |
+| HLS | 2-10s | Playback/recording |
+
+---
+
+<Callout type="info">
+For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/ffmpeg2constellation).
+</Callout>

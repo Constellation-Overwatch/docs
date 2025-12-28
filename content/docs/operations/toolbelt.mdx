@@ -1,0 +1,70 @@
+---
+title: Toolbelt
+description: Infrastructure as Code toolbelt for Constellation Overwatch
+icon: Wrench
+---
+
+# Toolbelt
+
+Infrastructure as Code (IaC) toolbelt for deploying and managing Constellation Overwatch.
+
+## Overview
+
+The [Constellation Toolbelt](https://github.com/Constellation-Overwatch/toolbelt) provides a collection of scripts, templates, and utilities for deploying Constellation Overwatch across various environments.
+
+## Features
+
+- **Automated Deployment** - One-command deployments
+- **Multi-Platform** - Support for Linux, macOS, and Windows
+- **Air-Gapped Support** - Offline installation capabilities
+- **Configuration Management** - Templated configuration files
+
+## Installation
+
+```bash
+# Linux / macOS
+curl -LsSf https://constellation-overwatch.github.io/overwatch/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy Bypass -c "irm https://constellation-overwatch.github.io/overwatch/install.ps1 | iex"
+```
+
+## Available Tools
+
+| Tool | Description |
+| ---- | ----------- |
+| `overwatch` | Main CLI for managing Constellation |
+| `overwatch-init` | Initialize a new Constellation instance |
+| `overwatch-backup` | Backup and restore utilities |
+| `overwatch-upgrade` | Upgrade to newer versions |
+
+## Deployment Targets
+
+The toolbelt supports deploying to:
+
+- **Bare Metal** - Direct installation on physical servers
+- **Docker** - Containerized deployments
+- **Kubernetes** - Helm charts for K8s clusters
+- **Edge Devices** - Raspberry Pi, Jetson, and embedded systems
+
+## Usage
+
+```bash
+# Initialize a new installation
+overwatch init
+
+# Start services
+overwatch start
+
+# Check status
+overwatch status
+
+# View logs
+overwatch logs
+```
+
+---
+
+<Callout type="info">
+For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/toolbelt).
+</Callout>
