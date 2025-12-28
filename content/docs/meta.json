@@ -1,6 +1,7 @@
 {
   "title": "Documentation",
   "pages": [
+    "index",
     "introduction",
     "platform",
     "concepts",
