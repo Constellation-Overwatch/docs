@@ -222,9 +222,9 @@ create_default_env() {
 # Constellation Overwatch Configuration
 # Data: $DATA_DIR/
 
-API_BEARER_TOKEN=reindustrialize-dev-token
+API_BEARER_TOKEN=your-api-bearer-token
 NATS_ENABLE_AUTH=true
-NATS_AUTH_TOKEN=reindustrialize-america
+NATS_AUTH_TOKEN=your-nats-auth-token
 
 DB_PATH=$DATA_DIR/db/constellation.db
 NATS_DATA_DIR=$DATA_DIR/nats

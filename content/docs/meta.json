@@ -1,9 +1,12 @@
 {
   "title": "Documentation",
   "pages": [
+    "mission-vision",
+    "---Builders",
     "index",
-    "installation", 
+    "installation",
     "quick-start",
-    "test"
+    "---Integrations",
+    "integrations"
   ]
 }

@@ -1,5 +1,5 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { VERSION } from './version';
+import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons';
 
 export function baseOptions(): BaseLayoutProps {
   return {
@@ -10,26 +10,21 @@ export function baseOptions(): BaseLayoutProps {
           <span className="font-semibold">Constellation Overwatch</span>
         </div>
       ),
-      children: (
-        <div className="flex flex-1 justify-end items-center gap-2 mr-2">
-          <a
-            href="https://github.com/Constellation-Overwatch/constellation-overwatch/releases"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
-          >
-            {VERSION}
-          </a>
-        </div>
-      ),
+      transparentMode: 'top',
     },
     links: [
       {
-        text: 'Documentation',
-        url: '/docs',
-        active: 'nested-url',
+        type: 'icon',
+        label: 'GitHub',
+        icon: <SiGithub />,
+        text: 'GitHub',
+        url: 'https://github.com/Constellation-Overwatch/constellation-overwatch',
+        external: true,
       },
       {
+        type: 'icon',
+        label: 'Discord',
+        icon: <SiDiscord />,
         text: 'Discord',
         url: 'https://discord.gg/hqJebrXmhQ',
         external: true,

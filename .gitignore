@@ -1,6 +1,6 @@
 node_modules
 
-.DS_Store
+# Build artifacts
 .cache
 .vercel
 .output
@@ -15,4 +15,28 @@ node_modules
 /playwright/.cache/
 .tanstack
 
+# Application
 .source
+.env
+.env.*
+!.env.example
+
+# Tools
+.claude/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

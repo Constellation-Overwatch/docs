@@ -10,18 +10,20 @@
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
     "lint": "biome check",
-    "format": "biome format --write",
-    "update-version": "node scripts/update-version.js"
+    "format": "biome format --write"
   },
   "dependencies": {
+    "@icons-pack/react-simple-icons": "^13.8.0",
     "@orama/orama": "^3.1.16",
     "@tanstack/react-router": "1.136.18",
     "@tanstack/react-router-devtools": "1.136.18",
     "@tanstack/react-start": "1.136.18",
     "@tanstack/start-static-server-functions": "1.136.18",
+    "clsx": "^2.1.1",
     "fumadocs-core": "16.3.2",
     "fumadocs-mdx": "14.2.2",
     "fumadocs-ui": "16.3.2",
+    "lucide-react": "^0.562.0",
     "lucide-static": "^0.561.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

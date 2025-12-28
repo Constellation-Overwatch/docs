@@ -13,6 +13,8 @@ import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { baseOptions } from '@/lib/layout.shared';
 import { staticFunctionMiddleware } from '@tanstack/start-static-server-functions';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
+import { Database, DollarSign, Zap, Rocket } from 'lucide-react';
+
 
 export const Route = createFileRoute('/docs/$')({
   component: Page,
@@ -49,6 +51,10 @@ const clientLoader = browserCollections.docs.createClientLoader({
           <MDX
             components={{
               ...defaultMdxComponents,
+              Database,
+              DollarSign,
+              Zap,
+              Rocket,
             }}
           />
         </DocsBody>
@@ -56,6 +62,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
     );
   },
 });
+
 
 function Page() {
   const data = Route.useLoaderData();
@@ -68,3 +75,6 @@ function Page() {
     </DocsLayout>
   );
 }
+
+
+
