@@ -1,0 +1,87 @@
+---
+title: API Reference
+description: Complete API documentation for Constellation Overwatch
+icon: Code
+---
+
+# API Reference
+
+Complete API documentation for Constellation Overwatch.
+
+## Overview
+
+Constellation Overwatch provides a RESTful API with bearer token authentication for managing organizations, entities, and telemetry data.
+
+## Authentication
+
+All API requests require authentication using a bearer token in the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer <your-token>" \
+  http://localhost:8080/api/v1/organizations
+```
+
+## Base URL
+
+```
+http://localhost:8080/api/v1
+```
+
+## Endpoints
+
+### Organizations
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| `GET` | `/organizations` | List all organizations |
+| `POST` | `/organizations` | Create a new organization |
+| `GET` | `/organizations/:id` | Get organization by ID |
+| `PUT` | `/organizations/:id` | Update an organization |
+| `DELETE` | `/organizations/:id` | Delete an organization |
+
+### Entities
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| `GET` | `/entities` | List all entities |
+| `POST` | `/entities` | Create a new entity |
+| `GET` | `/entities/:id` | Get entity by ID |
+| `PUT` | `/entities/:id` | Update an entity |
+| `DELETE` | `/entities/:id` | Delete an entity |
+
+### Telemetry
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| `GET` | `/telemetry/:entity_id` | Get telemetry for an entity |
+| `POST` | `/telemetry` | Submit telemetry data |
+
+## Response Format
+
+All responses are returned in JSON format:
+
+```json
+{
+  "data": {},
+  "meta": {
+    "timestamp": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+## Error Handling
+
+Errors are returned with appropriate HTTP status codes:
+
+| Status Code | Description |
+| ----------- | ----------- |
+| `400` | Bad Request - Invalid parameters |
+| `401` | Unauthorized - Invalid or missing token |
+| `404` | Not Found - Resource not found |
+| `500` | Internal Server Error |
+
+---
+
+<Callout type="info">
+Full API documentation with interactive examples coming soon.
+</Callout>
