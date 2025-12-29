@@ -1,6 +1,0 @@
-# Constellation Overwatch - https://constellation-overwatch.dev
-User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://constellation-overwatch.dev/sitemap.xml
