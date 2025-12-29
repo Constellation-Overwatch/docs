@@ -1,0 +1,4 @@
+const tsrStartManifest = () => ({ "routes": { "__root__": { "filePath": "/Users/cristobaltorres/CTSIO/Y/dev/gus/constellation-overwatch.dev/src/routes/__root.tsx", "children": ["/", "/api/search", "/docs/$"], "preloads": ["/assets/main-BKUcFAd0.js"], "assets": [] }, "/": { "filePath": "/Users/cristobaltorres/CTSIO/Y/dev/gus/constellation-overwatch.dev/src/routes/index.tsx", "assets": [], "preloads": ["/assets/index-Cq05DDos.js", "/assets/layout.shared-gBWYs7Mi.js"] }, "/api/search": { "filePath": "/Users/cristobaltorres/CTSIO/Y/dev/gus/constellation-overwatch.dev/src/routes/api/search.ts" }, "/docs/$": { "filePath": "/Users/cristobaltorres/CTSIO/Y/dev/gus/constellation-overwatch.dev/src/routes/docs/$.tsx", "assets": [], "preloads": ["/assets/_-BexuGQyM.js", "/assets/layout.shared-gBWYs7Mi.js"] } }, "clientEntry": "/assets/main-BKUcFAd0.js" });
+export {
+  tsrStartManifest
+};

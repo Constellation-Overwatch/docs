@@ -203,12 +203,7 @@ p {
   animation: animGravity 8s ease-in-out var(--animation-iteration);
 }
 
-/* Mobile adjustments - hide entire parallax on mobile/touch devices */
-@media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  .cosmic-parallax-container {
-    display: none;
-  }
-}
+/* Mobile adjustments - cosmic parallax now enabled on mobile since text overlay is removed */
 
 /* Subtitle */
 #subtitle {

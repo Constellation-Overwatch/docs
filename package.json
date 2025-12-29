@@ -4,10 +4,12 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "start": "serve dist/client",
-    "deploy": "npx wrangler pages deploy dist/client --project-name=docs",
+    "dev": "wrangler dev --local",
+    "dev:vite": "vite dev",
+    "build": "vite build && tsc --noEmit",
+    "preview": "vite preview",
+    "deploy": "bun run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
     "lint": "biome check",
@@ -34,6 +36,8 @@
     "vite": "^7.2.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.10",
+    "@cloudflare/vite-plugin": "^1.19.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/mdx": "^2.0.13",
     "@types/node": "^24.10.2",
@@ -43,7 +47,6 @@
     "serve": "^14.2.5",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite-tsconfig-paths": "^6.0.0",
-    "@biomejs/biome": "^2.3.10"
+    "vite-tsconfig-paths": "^6.0.0"
   }
 }

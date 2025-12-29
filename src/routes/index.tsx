@@ -19,7 +19,7 @@ function Home() {
         {/* Cosmic Parallax Hero Section - Full Height */}
         <div className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden bg-gradient-to-b from-[#090A0F] to-[#1B2735]">
           <CosmicParallaxBg
-            head="Constellation Overwatch"
+            head=""
             loop={true}
           />
 

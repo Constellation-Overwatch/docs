@@ -85,14 +85,16 @@ const CosmicParallaxBg: React.FC<CosmicParallaxBgProps> = ({
       <div id="earth"></div>
 
       {/* Title - split into two lines */}
-      <div id="title">
-        {head.split(' ').map((word, index, arr) => (
-          <React.Fragment key={index}>
-            {word.toUpperCase()}
-            {index < arr.length - 1 && (index === 0 ? <br /> : ' ')}
-          </React.Fragment>
-        ))}
-      </div>
+      {head && head.trim() && (
+        <div id="title">
+          {head.split(' ').map((word, index, arr) => (
+            <React.Fragment key={index}>
+              {word.toUpperCase()}
+              {index < arr.length - 1 && (index === 0 ? <br /> : ' ')}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
