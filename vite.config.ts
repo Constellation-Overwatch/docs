@@ -11,27 +11,6 @@ export default defineConfig({
     port: 3003,
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // Split large visualization libraries
-          if (id.includes('mermaid')) return 'mermaid';
-          if (id.includes('katex')) return 'katex';
-          if (id.includes('cytoscape')) return 'cytoscape';
-          // Vendor chunks
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            // Don't separate fumadocs into its own chunk to avoid context issues
-            // if (id.includes('fumadocs')) {
-            //   return 'fumadocs-vendor';
-            // }
-            return 'vendor';
-          }
-        },
-      },
-    },
     chunkSizeWarningLimit: 1000,
   },
   plugins: [
