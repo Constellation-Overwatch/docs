@@ -23,9 +23,10 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
             }
-            if (id.includes('fumadocs')) {
-              return 'fumadocs-vendor';
-            }
+            // Don't separate fumadocs into its own chunk to avoid context issues
+            // if (id.includes('fumadocs')) {
+            //   return 'fumadocs-vendor';
+            // }
             return 'vendor';
           }
         },
