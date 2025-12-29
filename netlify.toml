@@ -9,24 +9,4 @@
 [functions]
   directory = ".netlify/v1/functions"
 
-# Explicit redirects for TanStack Start routing
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/v1/functions/server"
-  status = 200
-
-[[redirects]]
-  from = "/_serverFn/*"
-  to = "/.netlify/v1/functions/server"  
-  status = 200
-
-[[redirects]]
-  from = "/__tsr/*"
-  to = "/.netlify/v1/functions/server"
-  status = 200
-
-# Catch-all for SPA (must be last)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Let the Netlify plugin handle all routing automatically
