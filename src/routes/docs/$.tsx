@@ -11,7 +11,6 @@ import {
 } from 'fumadocs-ui/layouts/docs/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { baseOptions } from '@/lib/layout.shared';
-import { staticFunctionMiddleware } from '@tanstack/start-static-server-functions';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { Database, DollarSign, Zap, Rocket } from 'lucide-react';
 import { Mermaid } from '@/components/mdx/mermaid';
@@ -31,7 +30,6 @@ const loader = createServerFn({
   method: 'GET',
 })
   .inputValidator((slugs: string[]) => slugs)
-  .middleware([staticFunctionMiddleware])
   .handler(async ({ data: slugs }) => {
     const page = source.getPage(slugs);
     if (!page) throw notFound();
