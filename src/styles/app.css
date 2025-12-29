@@ -203,24 +203,10 @@ p {
   animation: animGravity 8s ease-in-out var(--animation-iteration);
 }
 
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  #title {
+/* Mobile adjustments - hide entire parallax on mobile/touch devices */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  .cosmic-parallax-container {
     display: none;
-  }
-
-  #horizon {
-    height: 100px;
-  }
-
-  #horizon .glow {
-    height: 60px;
-  }
-
-  #earth {
-    bottom: -300px;
-    width: 150vw;
-    height: 75vw;
   }
 }
 

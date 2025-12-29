@@ -1,65 +1,287 @@
 ---
 title: Aero Arc Relay
-description: MAVLink relay bridge for Constellation Overwatch
+description: Production-grade telemetry ingestion pipeline for MAVLink-enabled drones and autonomous systems
 icon: Plane
 ---
 
 # Aero Arc Relay
 
-MAVLink relay bridge that connects UAVs and ground control stations to Constellation Overwatch.
+Production-grade telemetry ingestion pipeline for MAVLink-enabled drones and autonomous systems with high-performance NATS JetStream plumbing.
 
-## Overview
+## About
 
-[Aero Arc Relay](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation) provides a bridge between MAVLink-compatible flight controllers and Constellation Overwatch's data fabric, enabling real-time telemetry streaming from drones and autonomous vehicles.
+[Aero Arc Relay](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation) is a high-confidence, async-buffered, fault-tolerant telemetry relay written in Go, designed for:
 
-## Features
+- Drone fleets & robotics platforms
+- Research labs & autonomy teams
+- Cloud-native infrastructure
+- Real-time telemetry dashboards
+- Edge-to-cloud streaming pipelines
 
-- **MAVLink Protocol Support** - Full MAVLink v2 protocol compatibility
-- **Real-time Telemetry** - Stream position, attitude, and sensor data
-- **Bidirectional Communication** - Send commands back to vehicles
-- **Multi-vehicle Support** - Connect multiple UAVs simultaneously
+Relay handles MAVLink concurrency and message parsing, applies a unified envelope format, and delivers data to **NATS JetStream**, S3, GCS, or local storage with structured constellation logging, metrics, and health probes for orchestration.
 
-## Installation
+## Highlights
+
+- **MAVLink ingest** via gomavlib (UDP/TCP/Serial) with support for multiple dialects
+- **NATS JetStream streaming** with entity-specific subjects (`constellation.telemetry.{entity_id}`)
+- **Device State Tracking** via NATS Key-Value stores (latest values for GPS, battery, attitude, etc.)
+- **Data sinks** with async queues and backpressure controls:
+  - **NATS JetStream** - Modern streaming platform with persistence and replay
+  - AWS S3 - Cloud object storage
+  - Google Cloud Storage - GCS buckets
+  - Local file storage with rotation
+- **Token authentication** - JWT and credentials file support for NATS
+- **Constellation logging** - Structured logging with Zap integration
+- **Prometheus metrics** at `/metrics` endpoint
+- **Health/ready probes** at `/healthz` and `/readyz` for orchestration
+- **Graceful shutdown** with context cancellation for clean container restarts
+- **Environment variable support** for secure credential management
+- **Pure Go** - No CGO dependencies, ARM64 compatible
+
+## Prerequisites
+
+- Go 1.24.0 or later
+- [Task](https://taskfile.dev/installation/) (Taskfile runner)
+- NATS server with JetStream enabled (for streaming functionality)
+- Docker and Docker Compose (for containerized deployment)
+
+## Quick Start
+
+### Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/Constellation-Overwatch/aero-arc-relay2constellation.git
 cd aero-arc-relay2constellation
 
-# Build and run
-go build -o aero-arc-relay
-./aero-arc-relay
+# Install dependencies
+task deps
+
+# Configure the application
+cp configs/config.yaml.example configs/config.yaml
+# Edit configs/config.yaml with your settings
+
+# Start NATS server with JetStream
+docker run -p 4222:4222 nats:latest -js
+
+# Run the application
+LOG_LEVEL=INFO task run
+```
+
+### Docker Deployment
+
+```bash
+# Build the Docker image
+task docker-build
+
+# Start services with Docker Compose
+task docker-run
+
+# View logs
+task logs
+
+# Access metrics
+curl http://localhost:2112/metrics
+
+# Stop services
+task docker-stop
+```
+
+### Testing with SITL
+
+We intentionally do not containerize SITL (Software In The Loop). SITL is a GUI-heavy simulator that varies by distro, rendering stack, and MAVLink tooling. Aero Arc Relay expects you to bring your own SITL or real drone and point it at the relay.
+
+**Example with ArduPilot SITL:**
+
+```bash
+sim_vehicle.py --out=udp:<relay-ip>:14550
 ```
 
 ## Configuration
 
-Configure the relay to connect to your Constellation Overwatch instance:
+Edit `configs/config.yaml` to configure your MAVLink endpoints and data sinks.
+
+### MAVLink Endpoints
+
+Configure connections to your MAVLink-enabled devices:
 
 ```yaml
-constellation:
-  host: localhost
-  port: 8080
-  token: your-api-token
-
 mavlink:
-  connection: serial:///dev/ttyUSB0:57600
-  system_id: 1
+  dialect: "common"  # common, ardupilot, px4, minimal, standard, etc.
+  endpoints:
+    - name: "drone-1"
+      protocol: "udp"      # udp, tcp, or serial
+      drone_id: "drone-alpha"  # Optional: unique identifier for the drone
+      mode: "1:1"           # 1:1 or multi
+      port: 14550           # Required for UDP/TCP
 ```
 
-## Telemetry Data
+**Endpoint Modes:**
 
-The relay streams the following telemetry to Constellation:
+| Mode | Description |
+| ---- | ----------- |
+| `1:1` | One-to-one connection mode |
+| `multi` | Multi-connection mode for handling multiple clients |
 
-| Data Type | Description |
-| --------- | ----------- |
-| Position | GPS coordinates (lat, lon, alt) |
-| Attitude | Roll, pitch, yaw angles |
-| Velocity | Ground speed and vertical speed |
-| Battery | Voltage, current, remaining capacity |
-| Status | Armed state, flight mode, health |
+**Protocols:**
+
+| Protocol | Description |
+| -------- | ----------- |
+| `udp` | UDP server/client mode |
+| `tcp` | TCP server/client mode |
+| `serial` | Serial port connection |
+
+### NATS JetStream (Recommended)
+
+```yaml
+sinks:
+  nats:
+    url: "nats://localhost:4222"
+    subject: "constellation.telemetry.{entity_id}"  # Entity-specific routing
+    token: "${NATS_TOKEN}"                          # JWT token for authentication
+    queue_size: 1000
+    backpressure_policy: "drop"                     # drop or block
+    stream:
+      name: "MAVLINK_TELEMETRY"
+      subjects:
+        - "constellation.telemetry.>"               # Captures all entity traffic
+      storage: "file"                               # "memory" or "file"
+      max_age: "24h"                                # Message retention
+      max_msgs: 1000000                             # Max messages to retain
+      compression: true                             # Enable S2 compression
+```
+
+**Subject Patterns:**
+
+- **1:1 mode**: `constellation.telemetry.{entity_id}` → `constellation.telemetry.drone-alpha`
+- **Multi mode**: `constellation.telemetry.{org_id}` → `constellation.telemetry.fleet-001`
+
+### NATS JetStream KV (Device State)
+
+Configure a Key-Value bucket to track the latest aggregated state of each device:
+
+```yaml
+sinks:
+  nats:
+    kv:
+      bucket: "mavlink_state"
+      key_pattern: "{drone_id}"        # Key template
+      description: "Current state of drone fleet"
+      ttl: "24h"                       # Time-to-live for stale keys
+      storage: "file"                  # "memory" or "file"
+      max_bytes: 104857600             # Max bucket size (100MB)
+      replicas: 1
+```
+
+### Cloud Storage
+
+```yaml
+sinks:
+  s3:
+    bucket: "your-telemetry-bucket"
+    region: "us-west-2"
+    access_key: "${AWS_ACCESS_KEY_ID}"
+    secret_key: "${AWS_SECRET_ACCESS_KEY}"
+    prefix: "telemetry"
+    flush_interval: "1m"
+    queue_size: 1000
+    backpressure_policy: "drop"
+```
+
+### Environment Variables
+
+The configuration file supports environment variable expansion using `${VAR_NAME}` syntax:
+
+```bash
+export NATS_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+export AWS_ACCESS_KEY_ID="your-key"
+export AWS_SECRET_ACCESS_KEY="your-secret"
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARN, ERROR
+```
+
+## NATS JetStream Streaming
+
+Aero Arc Relay provides first-class support for NATS JetStream, offering persistent streaming with replay capabilities for MAVLink telemetry.
+
+### Key Benefits
+
+- **Entity Isolation** - Each drone/vehicle gets its own subject namespace
+- **Replay Capability** - Historical telemetry available for analysis and debugging
+- **High Throughput** - Optimized for real-time telemetry ingestion
+- **Persistence** - Configurable storage (memory/file) with retention policies
+- **Authentication** - JWT token and credentials file support
+- **Compression** - S2 compression for bandwidth optimization
+
+### Subject Architecture
+
+The relay uses a hierarchical subject structure for optimal routing and filtering:
+
+```
+constellation.telemetry.{entity_id}
+```
+
+**Examples:**
+
+- Drone Alpha: `constellation.telemetry.drone-alpha`
+- Vehicle Beta: `constellation.telemetry.vehicle-beta`
+- Fleet Operations: `constellation.telemetry.fleet-001`
+
+### Consuming Messages
+
+Subscribe to entity-specific or wildcard subjects:
+
+```bash
+# Subscribe to specific entity
+nats sub "constellation.telemetry.drone-alpha"
+
+# Subscribe to all telemetry
+nats sub "constellation.telemetry.>"
+
+# Subscribe to all drones
+nats sub "constellation.telemetry.drone-*"
+```
+
+## Telemetry Data Format
+
+The relay uses a unified `TelemetryEnvelope` format for all messages:
+
+```json
+{
+  "drone_id": "drone-alpha",
+  "source": "drone-1",
+  "timestamp_relay": "2024-01-15T10:30:00Z",
+  "timestamp_device": 1705315800.123,
+  "msg_id": 0,
+  "msg_name": "Heartbeat",
+  "system_id": 1,
+  "component_id": 1,
+  "sequence": 42,
+  "fields": {
+    "type": "MAV_TYPE_QUADROTOR",
+    "autopilot": "MAV_AUTOPILOT_ARDUPILOTMEGA",
+    "base_mode": 89,
+    "custom_mode": 4,
+    "system_status": "MAV_STATE_ACTIVE"
+  },
+  "raw": "base64-encoded-raw-bytes"
+}
+```
+
+## Monitoring
+
+### Metrics Endpoint
+
+Prometheus metrics are exposed at `http://localhost:2112/metrics`.
+
+### Health Endpoints
+
+| Endpoint | Description |
+| -------- | ----------- |
+| `/healthz` | Liveness probe (always 200 if process is running) |
+| `/readyz` | Readiness probe (200 once sinks are initialized) |
 
 ---
 
 <Callout type="info">
-For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation).
+For full documentation and source code, see the [GitHub repository](https://github.com/Constellation-Overwatch/aero-arc-relay2constellation).
 </Callout>

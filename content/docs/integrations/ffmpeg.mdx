@@ -1,61 +1,230 @@
 ---
 title: FFmpeg Streaming
-description: Low-latency video streaming for Constellation Overwatch
+description: H.264/MPEG-TS Video Publisher for Constellation Overwatch
 icon: Video
 ---
 
-# FFmpeg Streaming
+# FFmpeg2Constellation
 
-Low-latency video streaming integration for edge devices and Constellation Overwatch.
+H.264/MPEG-TS Video Publisher for Constellation Overwatch.
 
-## Overview
+## About
 
-[FFmpeg2Constellation](https://github.com/Constellation-Overwatch/ffmpeg2constellation) enables low-latency video streaming from edge devices, cameras, and UAVs to the Constellation Overwatch platform.
+**FFmpeg2Constellation** is a high-performance video streaming bridge that captures video from local devices or RTSP streams and publishes H.264/MPEG-TS to NATS JetStream. It serves as the video ingestion layer for [Constellation Overwatch](https://github.com/Constellation-Overwatch/constellation-overwatch), enabling real-time video streaming from edge devices to WebRTC receivers.
 
 ## Features
 
-- **Low Latency** - Optimized for real-time video streaming
-- **Multiple Formats** - Support for RTSP, RTMP, HLS, and WebRTC
-- **Hardware Acceleration** - GPU-accelerated encoding/decoding
-- **Adaptive Bitrate** - Dynamic quality adjustment based on network conditions
+- **H.264 Encoding** - WebRTC-compatible baseline profile with ultrafast preset
+- **Universal Input** - Auto-discovers USB cameras, RTSP streams, and virtual devices
+- **NATS JetStream** - Reliable publishing with backpressure handling
+- **Low Latency** - Zero-latency tuning, 1-second keyframe intervals
+- **Resilient** - Auto-reconnects and restarts on failure
+- **Cross-Platform** - macOS (AVFoundation) and Linux (V4L2)
 
-## Installation
+## Prerequisites
+
+- **Go 1.21+**
+- **FFmpeg** with libx264 support
+- **Task** (optional) - [taskfile.dev](https://taskfile.dev)
+- **[Constellation Overwatch](https://github.com/Constellation-Overwatch/constellation-overwatch)**
+
+## Quick Start
+
+### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/Constellation-Overwatch/ffmpeg2constellation.git
 cd ffmpeg2constellation
+```
 
-# Build and run
-make build
-./ffmpeg2constellation
+### Configuration
+
+Create a `.env` file with your settings:
+
+```bash
+# Required
+CONSTELLATION_ENTITY_ID=drone-01
+NATS_URL=nats://localhost:4222
+NATS_TOKEN=your_token_here
+ENABLE_FRAME_STREAMING=true
+
+# Video Input (optional - auto-discovered if not set)
+# RTSP_URL=rtsp://192.168.1.100:554/stream
+# DEVICE_PATH=/dev/video0
+
+# Encoding (optional - sensible defaults)
+# TARGET_FPS=15
+# BITRATE=1500k
+# MAX_BITRATE=2000k
+# MAX_DIMENSION=1280
+```
+
+### Run
+
+```bash
+# Using Task
+task run
+
+# Or directly
+go run ./cmd/microlith
+```
+
+**Expected Output:**
+
+```
+=== FFmpeg2Constellation Video Publisher ===
+Entity ID: drone-01
+NATS URL: nats://localhost:4222
+Connected to Constellation Overwatch NATS server
+Stream 'CONSTELLATION_VIDEO' ready for publishing
+Video source: [-f avfoundation -framerate 30 -pixel_format yuyv422 -i 0]
+Publishing to: constellation.video.drone-01
+Encoding: H.264 baseline @ 1500k (2000k max), 15 fps
+Starting video stream...
+Publishing MPEG-TS stream...
+[STREAM] 500 chunks | 1521 kbps | dropped: 0 | uptime: 30s
 ```
 
 ## Configuration
 
-Configure video streams for your devices:
+### Environment Variables
 
-```yaml
-streams:
-  - name: drone-camera
-    source: rtsp://192.168.1.100:8554/stream
-    output: webrtc
+| Variable | Description | Required | Default |
+| -------- | ----------- | -------- | ------- |
+| `CONSTELLATION_ENTITY_ID` | Unique identifier for this video source | **Yes** | - |
+| `NATS_URL` | NATS server URL | No | `nats://localhost:4222` |
+| `NATS_TOKEN` | NATS authentication token | No | - |
+| `ENABLE_FRAME_STREAMING` | Enable/disable streaming | No | `false` |
+| `RTSP_URL` | RTSP stream URL (priority over device) | No | - |
+| `DEVICE_PATH` | Specific device path | No | Auto-discovered |
+| `TARGET_FPS` | Target framerate | No | `15` |
+| `BITRATE` | Target bitrate | No | `1500k` |
+| `MAX_BITRATE` | Maximum bitrate cap | No | `2000k` |
+| `BUF_SIZE` | Encoder buffer size | No | `500k` |
+| `MAX_DIMENSION` | Max width (height auto-scales) | No | `1280` |
 
-  - name: ground-camera
-    source: /dev/video0
-    output: hls
+### Video Input Priority
+
+1. `RTSP_URL` environment variable
+2. `DEVICE_PATH` environment variable
+3. Auto-discovered devices
+4. Test pattern fallback
+
+## Architecture
+
+<Mermaid chart="
+flowchart LR
+    subgraph Edge[Edge Device]
+        CAM[Camera RTSP/USB]
+        FF[FFmpeg libx264]
+        PUB[FFmpeg2Constellation NATS Publisher]
+        CAM -->|Raw Video| FF
+        FF -->|MPEG-TS H.264| PUB
+    end
+    subgraph Constellation[Constellation Overwatch]
+        NATS[NATS JetStream]
+        BRIDGE[Video Bridge MPEG-TS to RTP]
+        WEB[WebRTC Clients]
+        NATS -->|Subscribe| BRIDGE
+        BRIDGE -->|RTP/WebRTC| WEB
+    end
+    PUB -->|Publish constellation.video.*| NATS
+" />
+
+### FFmpeg Pipeline
+
+```bash
+ffmpeg -hide_banner -loglevel error \
+  -f avfoundation -framerate 30 -pixel_format yuyv422 -i 0 \
+  -vf "fps=15,scale='min(1280,iw)':-1" \
+  -c:v libx264 \
+  -preset ultrafast \
+  -tune zerolatency \
+  -profile:v baseline \
+  -level 3.1 \
+  -pix_fmt yuv420p \
+  -g 15 -keyint_min 15 -sc_threshold 0 \
+  -b:v 1500k -maxrate 2000k -bufsize 500k \
+  -f mpegts \
+  -mpegts_flags +initial_discontinuity \
+  -
 ```
 
-## Streaming Protocols
+### NATS Subject Format
 
-| Protocol | Latency | Use Case |
-| -------- | ------- | -------- |
-| WebRTC | \<100ms | Real-time control |
-| RTSP | 200-500ms | IP cameras |
-| HLS | 2-10s | Playback/recording |
+```
+constellation.video.{CONSTELLATION_ENTITY_ID}
+```
+
+Example: `constellation.video.drone-01`
+
+## Development
+
+### Task Commands
+
+```bash
+task              # Show available tasks
+task build        # Build binary to bin/
+task run          # Build and run
+task clean        # Clean build artifacts
+task docker-build # Build Docker image
+task docker-run   # Start with Docker Compose
+task docker-stop  # Stop Docker Compose
+```
+
+### Project Structure
+
+```
+ffmpeg2constellation/
+├── cmd/
+│   └── microlith/
+│       └── main.go          # Entry point
+├── pkg/
+│   ├── config/
+│   │   └── init.go          # Configuration loader
+│   ├── services/
+│   │   ├── discovery/
+│   │   │   └── discovery.go # Device auto-discovery
+│   │   └── ffmpeg/
+│   │       └── ffmpeg.go    # FFmpeg runner & publisher
+│   └── shared/
+│       └── constants.go     # Constants & defaults
+├── public/
+│   └── overwatch.svg        # Logo
+├── .env.example             # Example configuration
+├── Taskfile.yml             # Task runner config
+└── README.md
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```
+--- Constellation Overwatch Connection Help ---
+Unable to connect to Constellation Overwatch NATS server.
+
+Troubleshooting steps:
+  1. Verify Constellation Overwatch is running
+  2. Check NATS_URL is correct (default: nats://localhost:4222)
+  3. Verify NATS_TOKEN matches your Constellation Overwatch configuration
+  4. Ensure network connectivity to the NATS server
+  5. Check firewall rules allow port 4222
+```
+
+### No Video Devices Found
+
+- **macOS**: Grant camera permissions in System Preferences → Security & Privacy → Camera
+- **Linux**: Ensure user is in `video` group: `sudo usermod -aG video $USER`
+
+### Green/Corrupted Frames on Receiver
+
+- Ensure receiver waits for keyframe (IDR) before decoding
+- Check network stability - dropped packets cause decoder artifacts
+- Increase `BITRATE` if quality is poor
 
 ---
 
 <Callout type="info">
-For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/ffmpeg2constellation).
+For full documentation and source code, see the [GitHub repository](https://github.com/Constellation-Overwatch/ffmpeg2constellation).
 </Callout>

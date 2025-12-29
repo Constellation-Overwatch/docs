@@ -17,7 +17,7 @@ function Home() {
     <HomeLayout {...baseOptions()}>
       <div className="flex flex-col min-h-[calc(100vh-64px)]">
         {/* Cosmic Parallax Hero Section - Full Height */}
-        <div className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden">
+        <div className="relative min-h-[calc(100vh-64px)] w-full overflow-hidden bg-gradient-to-b from-[#090A0F] to-[#1B2735]">
           <CosmicParallaxBg
             head="Constellation Overwatch"
             loop={true}
@@ -43,7 +43,7 @@ function Home() {
               Data Fabric & Toolbelt for Agentic Drones, Robots, Sensors, and Video Streams
             </p>
             <p className="text-white/50 text-xs md:text-sm lg:text-base max-w-xs md:max-w-xl lg:max-w-2xl mx-auto text-center mb-6 md:mb-8">
-              Industrial and rapid response data stack designed with ontological data primitives. Use <code>entity_id</code> to stream semantic real time signal trees.
+              Rapid response industrial data stack designed with ontological data primitives. Use <code>entity_id</code> to stream semantic real time signal trees.
             </p>
 
             {/* Quick Install */}
@@ -88,12 +88,14 @@ function Home() {
               </div>
             </div>
           </div>
+
+          {/* Footer - overlaid on earth */}
+          <footer className="absolute bottom-4 left-0 right-0 z-20">
+            <div className="text-center text-sm text-white/50">
+              Managed by <a href="https://jedi-ops.dev" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Jedi Labs</a>
+            </div>
+          </footer>
         </div>
-        <footer className="py-8 mt-auto">
-          <div className="text-center text-sm text-gray-500">
-            Managed by <a href="https://jedi-ops.dev" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">Jedi Labs</a>
-          </div>
-        </footer>
       </div>
     </HomeLayout>
   );

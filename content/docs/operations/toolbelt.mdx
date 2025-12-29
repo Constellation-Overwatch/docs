@@ -1,70 +1,326 @@
 ---
-title: Toolbelt
-description: Infrastructure as Code toolbelt for Constellation Overwatch
+title: IaC Toolbelt
+description: Infrastructure as Code toolbelt for rapid deployment of Constellation Overwatch C4ISR Server Mesh on Linode
 icon: Wrench
 ---
 
-# Toolbelt
+# Constellation Overwatch IaC Toolbelt
 
-Infrastructure as Code (IaC) toolbelt for deploying and managing Constellation Overwatch.
+Open source Infrastructure as Code (IaC) toolbelt for rapid deployment of Constellation Overwatch C4ISR Server Mesh on Linode.
 
-## Overview
+## About
 
-The [Constellation Toolbelt](https://github.com/Constellation-Overwatch/toolbelt) provides a collection of scripts, templates, and utilities for deploying Constellation Overwatch across various environments.
+The **Constellation Overwatch IaC Toolbelt** is a specialized suite of automation tools designed to streamline the deployment of the Constellation Overwatch C4ISR server mesh. By leveraging industry-standard Infrastructure as Code (IaC) principles, this toolbelt enables rapid, reproducible, and secure provisioning of cloud computing resources.
+
+Currently optimized for **Linode**, it automates the entire lifecycle of your infrastructure—from spinning up virtual private servers (VPS) to configuring security layers and deploying the application stack.
+
+<Callout type="warn">
+This toolbelt currently **only supports Linode** as a cloud provider. Support for additional providers is planned for future releases.
+</Callout>
 
 ## Features
 
-- **Automated Deployment** - One-command deployments
-- **Multi-Platform** - Support for Linux, macOS, and Windows
-- **Air-Gapped Support** - Offline installation capabilities
-- **Configuration Management** - Templated configuration files
+- **One-Command Deployment** using Task runner for a simplified developer experience
+- **Automated Provisioning** of Linode instances via Terraform
+- **Security Hardening** including UFW firewall, Fail2Ban, and SSH key enforcement
+- **Container Orchestration** with Docker and Docker Compose for application isolation
+- **Reverse Proxy Configuration** using Nginx with automatic SSL and rate limiting
+- **Idempotent Configuration** via Ansible to ensure consistent server state
+- **GHCR Integration** for pulling the latest authenticated container images
+- **Disaster Recovery** with automated backup and restore capabilities
 
-## Installation
+### Roadmap
+
+- **Multi-Cloud Support** (AWS, GCP, Azure)
+- **Kubernetes (K8s) Support** for larger scale deployments
+- **GitOps Integration** for continuous delivery
+- **Monitoring Stack** with Prometheus and Grafana pre-configured
+- **VPN Integration** for secure private networking between nodes
+
+## Architecture
+
+<Mermaid chart="
+graph TD
+    subgraph Local[Local Control Plane]
+        Operator[Operator]
+        Task[Task Runner]
+        IaC[Terraform / Ansible]
+        Operator --> Task --> IaC
+    end
+    subgraph Linode[Linode Cloud]
+        subgraph VPS[Linode VPS - Ubuntu 24.04]
+            subgraph Security[Security Layer]
+                UFW[UFW Firewall]
+                F2B[Fail2Ban]
+                SSH[Hardened SSH]
+            end
+            subgraph App[Application Layer]
+                Nginx[Nginx Proxy]
+                subgraph Containers[Containers]
+                    OW[Constellation Overwatch]
+                    NATS[Embedded NATS]
+                end
+            end
+        end
+    end
+    IaC -->|Provisions & Configures| VPS
+    Security --> Nginx
+    Nginx --> OW
+    OW --> NATS
+" />
+
+## Prerequisites
+
+- [Task](https://taskfile.dev/) - Task runner
+- [Terraform](https://terraform.io/) >= 1.0
+- [Ansible](https://ansible.com/) >= 2.9
+- Linode Account and API Token
+- GitHub Account (for GHCR access)
+
+## Quick Start
+
+Clone the repository and initialize the configuration:
 
 ```bash
-# Linux / macOS
-curl -LsSf https://constellation-overwatch.github.io/overwatch/install.sh | sh
+# Clone the repository
+git clone https://github.com/Constellation-Overwatch/overwatch-iac-toolbelt.git
+cd overwatch-iac-toolbelt
 
-# Windows
-powershell -ExecutionPolicy Bypass -c "irm https://constellation-overwatch.github.io/overwatch/install.ps1 | iex"
+# Setup configuration files
+task setup-config
 ```
 
-## Available Tools
-
-| Tool | Description |
-| ---- | ----------- |
-| `overwatch` | Main CLI for managing Constellation |
-| `overwatch-init` | Initialize a new Constellation instance |
-| `overwatch-backup` | Backup and restore utilities |
-| `overwatch-upgrade` | Upgrade to newer versions |
-
-## Deployment Targets
-
-The toolbelt supports deploying to:
-
-- **Bare Metal** - Direct installation on physical servers
-- **Docker** - Containerized deployments
-- **Kubernetes** - Helm charts for K8s clusters
-- **Edge Devices** - Raspberry Pi, Jetson, and embedded systems
-
-## Usage
+Edit the generated `.env` file with your credentials:
 
 ```bash
-# Initialize a new installation
-overwatch init
+# Linode Configuration
+TF_VAR_linode_token="your_linode_personal_access_token"
+TF_VAR_root_password="your_secure_root_password"
 
-# Start services
-overwatch start
+# SSH Configuration
+TF_VAR_ssh_public_key="ssh-ed25519 AAAAC3... your-email@example.com"
+TF_VAR_ssh_private_key_file="~/.ssh/id_ed25519"
 
-# Check status
-overwatch status
+# GitHub Container Registry
+TF_VAR_github_username="your_github_username"
+TF_VAR_github_token="ghp_your_github_personal_access_token"
 
-# View logs
-overwatch logs
+# Domain Configuration (optional - leave empty for IP-only access)
+TF_VAR_domain_name=""  # e.g., "constellation.example.com"
+TF_VAR_domain_email="" # e.g., "admin@example.com"
 ```
+
+Deploy the infrastructure:
+
+```bash
+# Deploy everything
+task deploy
+
+# Check deployment status
+task status
+
+# Full health check
+task health
+
+# View application logs
+task logs
+```
+
+## Access Your Deployment
+
+After successful deployment, access your Constellation Overwatch instance:
+
+### IP-Only Access (no domain configured)
+
+```bash
+# Get your server IP
+task status
+
+# Access via browser
+http://YOUR_SERVER_IP
+```
+
+### Domain Access (if configured)
+
+```bash
+http://your-domain.com    # HTTP access
+https://your-domain.com   # HTTPS (after SSL certificates)
+```
+
+### Direct Port Access
+
+| Service | URL |
+| ------- | --- |
+| **Web UI** | `http://YOUR_SERVER_IP:8080` |
+| **NATS Client** | `nats://YOUR_SERVER_IP:4222` |
+| **NATS Monitoring** | `http://YOUR_SERVER_IP:8222` |
+
+### SSL Certificate Setup (Optional)
+
+If you configured a domain name, SSL certificates will be automatically requested:
+
+```bash
+# Check certificate status
+task logs | grep certbot
+
+# For production certificates (remove staging):
+# Edit ansible/roles/constellation/templates/docker-compose.yml.j2
+# Remove the '--staging' flag from certbot command
+# Then run: task configure
+```
+
+## Available Commands
+
+The `Taskfile.yml` provides a set of convenient commands:
+
+```bash
+# Setup and Configuration
+task setup-config  # Copy configuration files from examples
+task init          # Initialize Terraform and Ansible
+task validate      # Validate configurations
+
+# Deployment and Management
+task plan          # Preview infrastructure changes
+task deploy        # Deploy complete stack
+task configure     # Run Ansible configuration only
+task update        # Update application only
+
+# Monitoring and Debugging
+task status        # Quick deployment status
+task health        # Comprehensive health check
+task logs          # View application logs
+
+# Maintenance
+task backup        # Create system backup
+task destroy       # Destroy all infrastructure
+```
+
+## Deployment Modes
+
+### HTTP-Only Mode (Default)
+
+```bash
+# Leave domain fields empty for IP-only access
+TF_VAR_domain_name=""
+TF_VAR_domain_email=""
+```
+
+- Access via server IP on port 80 (HTTP)
+- No SSL certificates required
+- Ideal for development and internal networks
+
+### HTTPS Mode with Domain
+
+```bash
+# Configure domain for SSL certificates
+TF_VAR_domain_name="constellation.yourdomain.com"
+TF_VAR_domain_email="admin@yourdomain.com"
+```
+
+- Automatic SSL certificates via Let's Encrypt
+- HTTP redirects to HTTPS
+- Production-ready configuration
+
+## Application Configuration
+
+The deployment automatically configures the Constellation Overwatch application with secure defaults:
+
+| Variable | Value | Description |
+| -------- | ----- | ----------- |
+| `API_BEARER_TOKEN` | `reindustrialize-dev-token` | API Security |
+| `HOST` | `0.0.0.0` | All interfaces (accessible externally) |
+| `PORT` | `8080` | Web UI and API port |
+| `DB_PATH` | `./data/constellation.db` | SQLite database location |
+| `NATS_HOST` | `0.0.0.0` | All interfaces (accessible externally) |
+| `NATS_PORT` | `4222` | NATS client port |
+| `NATS_DATA_DIR` | `./data/overwatch` | NATS data storage |
+| `NATS_ENABLE_AUTH` | `true` | Authentication enabled |
+| `NATS_AUTH_TOKEN` | `reindustrialize-america` | NATS token |
+| `NATS_JETSTREAM` | `true` | Enable JetStream |
+| `WEB_UI_PASSWORD` | `reindustrialize` | Web UI password |
+| `ALLOWED_ORIGINS` | `*` | CORS policy |
+
+### Advanced Customization
+
+To modify application settings, edit the template files:
+
+| File | Purpose |
+| ---- | ------- |
+| `ansible/roles/constellation/templates/constellation.env.j2` | Environment Variables |
+| `ansible/roles/constellation/templates/docker-compose.yml.j2` | Docker Configuration |
+| `ansible/roles/constellation/templates/nginx.conf.j2` | Nginx Proxy |
+| `ansible/roles/constellation/templates/constellation-overwatch.service.j2` | Systemd Service |
+
+After modifications, redeploy with:
+
+```bash
+task configure  # Apply configuration changes only
+# or
+task deploy     # Full deployment
+```
+
+## Project Structure
+
+```
+overwatch-iac-toolbelt/
+├── ansible/                    # Ansible playbooks and roles
+│   ├── inventories/           # Inventory files (auto-generated by Terraform)
+│   ├── playbooks/            # Main deployment playbooks
+│   │   ├── site.yml         # Complete system configuration
+│   │   └── deploy.yml       # Application updates only
+│   ├── roles/               # Reusable configuration roles
+│   │   ├── security/        # UFW firewall, Fail2Ban, SSH hardening
+│   │   ├── docker/          # Docker Engine installation
+│   │   └── constellation/   # Application deployment and configuration
+│   ├── requirements.yml     # External role dependencies
+│   └── ansible.cfg          # Ansible configuration
+├── config/                  # Configuration examples
+│   └── ansible.cfg.example  # Ansible configuration template
+├── terraform/               # Infrastructure as Code
+│   ├── main.tf             # Linode resources and local files
+│   ├── variables.tf        # Input variable definitions
+│   ├── outputs.tf          # Output definitions
+│   └── inventory.tpl       # Ansible inventory template
+├── keys/                    # SSH keys (git-ignored)
+├── .env.example            # Environment variables template
+├── Taskfile.yml            # Automation commands
+└── README.md               # Documentation
+```
+
+## Troubleshooting
+
+### nginx Container Restarting
+
+- **Cause**: SSL certificates missing but domain configured
+- **Solution**: Wait for certbot to complete, or temporarily disable domain
+- **Check**: `task logs | grep nginx`
+
+### SSL Certificate Failures
+
+- **Rate Limits**: Let's Encrypt limits 5 failures per hour per domain
+- **Solution**: Wait for rate limit reset or use `--staging` flag for testing
+- **Check**: `task logs | grep certbot`
+
+### Application Not Accessible
+
+- **Ports**: Ensure ports 80, 443, 4222, 8080, 8222 are open
+- **Health Check**: Run `task health` to verify all services
+- **Firewall**: Check UFW status with `ufw status`
+
+### WebSocket Connection Issues
+
+- **nginx**: Verify WebSocket headers in nginx configuration
+- **CORS**: Check `ALLOWED_ORIGINS` environment variable
+- **Ports**: Ensure application binds to `0.0.0.0:8080` not `127.0.0.1:8080`
+
+### Container Health Checks Failing
+
+- **App Startup**: Check `task logs` for application startup errors
+- **Database**: Verify SQLite database file permissions
+- **NATS**: Ensure NATS authentication tokens match
 
 ---
 
 <Callout type="info">
-For full documentation, see the [GitHub repository](https://github.com/Constellation-Overwatch/toolbelt).
+For full documentation and source code, see the [GitHub repository](https://github.com/Constellation-Overwatch/toolbelt).
 </Callout>
