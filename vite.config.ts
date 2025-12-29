@@ -4,14 +4,36 @@ import { defineConfig } from 'vite';
 import tsConfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from 'fumadocs-mdx/vite';
-import { cloudflare } from '@cloudflare/vite-plugin';
+import netlify from '@netlify/vite-plugin-tanstack-start';
 
 export default defineConfig({
   server: {
     port: 3003,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Split large visualization libraries
+          if (id.includes('mermaid')) return 'mermaid';
+          if (id.includes('katex')) return 'katex';
+          if (id.includes('cytoscape')) return 'cytoscape';
+          // Vendor chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('fumadocs')) {
+              return 'fumadocs-vendor';
+            }
+            return 'vendor';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   plugins: [
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
     mdx(await import('./source.config')),
     tailwindcss(),
     tsConfigPaths({
@@ -27,6 +49,7 @@ export default defineConfig({
         },
       ],
     }),
+    netlify(),
     react(),
   ],
 });
