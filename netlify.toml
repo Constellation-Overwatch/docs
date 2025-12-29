@@ -9,20 +9,4 @@
 [functions]
   directory = ".netlify/v1/functions"
 
-# TanStack Start server function redirects
-[[redirects]]
-  from = "/__tsr/*"
-  to = "/.netlify/v1/functions/server"
-  status = 200
-
-# API routes
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/v1/functions/server"
-  status = 200
-
-# SPA redirect configuration for client-side routing (must be last)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Let @netlify/vite-plugin-tanstack-start handle server functions automatically
