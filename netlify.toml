@@ -9,7 +9,19 @@
 [functions]
   directory = ".netlify/v1/functions"
 
-# SPA redirect configuration for client-side routing
+# TanStack Start server function redirects
+[[redirects]]
+  from = "/__tsr/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+# API routes
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+# SPA redirect configuration for client-side routing (must be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"
