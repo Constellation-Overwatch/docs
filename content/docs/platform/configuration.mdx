@@ -22,6 +22,20 @@ overwatch [options]
 | `-nats-token` | `reindustrialize-america` | NATS authentication token |
 | `-db-path` | `./data/constellation.db` | SQLite database path |
 | `-log-level` | `info` | Logging level (debug, info, warn, error) |
+| `--update` | - | Update to the latest version from GitHub releases |
+
+## Updating
+
+Update to the latest version with a single command:
+
+```bash
+overwatch --update
+```
+
+This will:
+1. Check GitHub for the latest release
+2. Download the appropriate binary for your platform
+3. Replace the current binary with the new version
 
 ## Environment Variables
 
@@ -29,11 +43,12 @@ All CLI options can also be set via environment variables:
 
 | Variable | CLI Flag | Description |
 | -------- | -------- | ----------- |
-| `OVERWATCH_PORT` | `-port` | HTTP server port |
-| `OVERWATCH_NATS_PORT` | `-nats-port` | NATS server port |
-| `OVERWATCH_API_TOKEN` | `-api-token` | API bearer token |
-| `OVERWATCH_NATS_TOKEN` | `-nats-token` | NATS authentication token |
-| `OVERWATCH_DB_PATH` | `-db-path` | SQLite database path |
+| `OVERWATCH_TOKEN` | `-api-token` | Unified token for API and NATS authentication |
+| `PORT` | `-port` | HTTP server port |
+| `DB_PATH` | `-db-path` | libSQL database path |
+| `NATS_PORT` | `-nats-port` | NATS server port |
+| `NATS_DATA_DIR` | - | NATS data directory |
+| `WEB_UI_PASSWORD` | - | Password for Web UI access (leave empty to disable) |
 | `OVERWATCH_LOG_LEVEL` | `-log-level` | Logging level |
 
 ## Example Configurations
@@ -52,8 +67,14 @@ Uses all default values for local development.
 overwatch \
   -port 8080 \
   -api-token $(openssl rand -hex 32) \
-  -nats-token $(openssl rand -hex 32) \
   -log-level warn
+```
+
+### Update Check
+
+```bash
+# Check for and install updates
+overwatch --update
 ```
 
 ### Docker
@@ -62,8 +83,8 @@ overwatch \
 docker run -d \
   -p 8080:8080 \
   -p 4222:4222 \
-  -e OVERWATCH_API_TOKEN=your-secure-token \
-  -e OVERWATCH_NATS_TOKEN=your-nats-token \
+  -e OVERWATCH_TOKEN=your-secure-token \
+  -e WEB_UI_PASSWORD=your-web-password \
   -v $(pwd)/data:/data \
   constellation-overwatch
 ```

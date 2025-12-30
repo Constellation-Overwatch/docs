@@ -14,6 +14,7 @@ import { baseOptions } from '@/lib/layout.shared';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { Database, DollarSign, Zap, Rocket } from 'lucide-react';
 import { Mermaid } from '@/components/mdx/mermaid';
+import { LLMCopyButton, ViewOptions } from '@/components/page-actions';
 
 
 export const Route = createFileRoute('/docs/$')({
@@ -36,16 +37,25 @@ const loader = createServerFn({
 
     return {
       path: page.path,
+      url: page.url,
       pageTree: await source.serializePageTree(source.pageTree),
     };
   });
 
 const clientLoader = browserCollections.docs.createClientLoader({
   component({ toc, frontmatter, default: MDX }) {
+    const data = Route.useLoaderData();
+    const markdownUrl = `${data.url}.mdx`;
+    const githubUrl = `https://github.com/constellation-overwatch/constellation-overwatch.dev/blob/main/content/docs/${data.path}`;
+    
     return (
       <DocsPage toc={toc}>
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
+        <div className="flex flex-row gap-2 items-center border-b pt-2 pb-6">
+          <LLMCopyButton markdownUrl={markdownUrl} />
+          <ViewOptions markdownUrl={markdownUrl} githubUrl={githubUrl} />
+        </div>
         <DocsBody>
           <MDX
             components={{

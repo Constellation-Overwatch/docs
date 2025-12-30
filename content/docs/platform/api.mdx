@@ -27,6 +27,19 @@ curl -H "Authorization: Bearer <your-token>" \
 http://localhost:8080/api/v1
 ```
 
+## Configuration Variables
+
+These environment variables configure the API server:
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `OVERWATCH_TOKEN` | `reindustrialize-dev-token` | Unified token for API and NATS authentication |
+| `PORT` | `8080` | HTTP server port |
+| `DB_PATH` | `./db/constellation.db` | libSQL database path |
+| `NATS_PORT` | `4222` | NATS server port |
+| `NATS_DATA_DIR` | `./data/overwatch` | NATS data directory |
+| `WEB_UI_PASSWORD` | (empty) | Password for Web UI access (leave empty to disable) |
+
 ## Endpoints
 
 ### Organizations
@@ -35,26 +48,73 @@ http://localhost:8080/api/v1
 | ------ | -------- | ----------- |
 | `GET` | `/organizations` | List all organizations |
 | `POST` | `/organizations` | Create a new organization |
-| `GET` | `/organizations/:id` | Get organization by ID |
-| `PUT` | `/organizations/:id` | Update an organization |
-| `DELETE` | `/organizations/:id` | Delete an organization |
+| `GET` | `/organizations?org_id=xxx` | Get organization by ID |
+
+**Create Organization:**
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/organizations \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Fleet",
+    "org_type": "civilian",
+    "description": "Test drone fleet"
+  }'
+```
+
+Allowed `org_type` values: `military`, `civilian`, `commercial`, `ngo`
 
 ### Entities
 
 | Method | Endpoint | Description |
 | ------ | -------- | ----------- |
-| `GET` | `/entities` | List all entities |
-| `POST` | `/entities` | Create a new entity |
-| `GET` | `/entities/:id` | Get entity by ID |
-| `PUT` | `/entities/:id` | Update an entity |
-| `DELETE` | `/entities/:id` | Delete an entity |
+| `GET` | `/entities?org_id=xxx` | List all entities in organization |
+| `POST` | `/entities?org_id=xxx` | Create a new entity |
+| `GET` | `/entities?org_id=xxx&entity_id=yyy` | Get entity by ID |
+| `PUT` | `/entities?org_id=xxx&entity_id=yyy` | Update an entity |
+| `DELETE` | `/entities?org_id=xxx&entity_id=yyy` | Delete an entity |
 
-### Telemetry
+**Create Entity:**
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/entities?org_id=$ORG_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Drone-001",
+    "entity_type": "aircraft_multirotor",
+    "description": "Primary vegetation inspection drone",
+    "metadata": {
+      "model": "DJI-M300",
+      "serial": "ABC123456"
+    }
+  }'
+```
+
+### Health Check
 
 | Method | Endpoint | Description |
 | ------ | -------- | ----------- |
-| `GET` | `/telemetry/:entity_id` | Get telemetry for an entity |
-| `POST` | `/telemetry` | Submit telemetry data |
+| `GET` | `/health` | Service health status |
+
+## NATS Subjects
+
+### Entity Events
+
+- `constellation.entities.{org_id}.created`
+- `constellation.entities.{org_id}.updated`
+- `constellation.entities.{org_id}.deleted`
+- `constellation.entities.{org_id}.status`
+
+### Telemetry
+
+- `constellation.telemetry.{org_id}.{entity_id}`
+
+### Commands
+
+- `constellation.commands.{org_id}.{entity_id}`
+- `constellation.commands.{org_id}.broadcast`
 
 ## Response Format
 
@@ -62,9 +122,14 @@ All responses are returned in JSON format:
 
 ```json
 {
-  "data": {},
-  "meta": {
-    "timestamp": "2024-01-01T00:00:00Z"
+  "success": true,
+  "data": {
+    "entity_id": "5458eec0-b0e3-4290-8db5-17936dbbfc64",
+    "org_id": "ae9c65d0-b5f3-4cec-8ffa-68ff1173e050",
+    "entity_type": "aircraft_multirotor",
+    "status": "unknown",
+    "priority": "normal",
+    "is_live": false
   }
 }
 ```
