@@ -52,7 +52,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
       <DocsPage toc={toc}>
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
-        <div className="flex flex-row gap-2 items-center border-b pt-2 pb-6">
+        <div className="flex flex-row gap-2 items-center border-b pt-2 pb-3">
           <LLMCopyButton markdownUrl={markdownUrl} />
           <ViewOptions markdownUrl={markdownUrl} githubUrl={githubUrl} />
         </div>
