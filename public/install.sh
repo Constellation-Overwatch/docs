@@ -486,7 +486,7 @@ main() {
         printf "    ${CYAN}overwatch${NC}\n"
     fi
     echo ""
-    say "Then visit ${CYAN}http://localhost:8080${NC}"
+    printf "Then visit ${CYAN}http://localhost:8080${NC}\n"
     echo ""
 }
 
