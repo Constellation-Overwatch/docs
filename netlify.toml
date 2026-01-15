@@ -9,5 +9,6 @@
 
 [functions]
   directory = ".netlify/v1/functions"
+  included_files = ["content/docs/**"]
 
 # Let the Netlify plugin handle all routing automatically
