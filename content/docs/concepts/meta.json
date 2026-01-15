@@ -2,6 +2,7 @@
   "title": "Concepts",
   "pages": [
     "index",
+    "architecture",
     "telemetry"
   ]
 }

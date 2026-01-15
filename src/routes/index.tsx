@@ -43,7 +43,7 @@ function Home() {
               Data Fabric & Toolbelt for Agentic Drones, Robots, Sensors, and Video Streams
             </p>
             <p className="text-white/50 text-xs md:text-sm lg:text-base max-w-xs md:max-w-xl lg:max-w-2xl mx-auto text-center mb-6 md:mb-8">
-              Rapid response industrial data stack designed with ontological data primitives. Use <code>entity_id</code> to stream semantic real time signal trees.
+              Rapid response industrial data stack designed with ontological data primitives. Use <code>entity_id</code> to stream real time signal trees for vendor agnostic swarm orchestration research & deployment.
             </p>
 
             {/* Quick Install */}
@@ -66,7 +66,7 @@ function Home() {
             </div>
 
             {/* Get Started Button */}
-            <div className="pointer-events-auto mb-5 md:mb-6">
+            <div className="pointer-events-auto mb-2">
               <Link
                 to="/docs/$"
                 params={{ _splat: '' }}
@@ -75,6 +75,7 @@ function Home() {
                 Get Started
               </Link>
             </div>
+            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-5 md:mb-6">Binary Size: 38.7MB</code>
 
             {/* Powered By */}
             <div>
