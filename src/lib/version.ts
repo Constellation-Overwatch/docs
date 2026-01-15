@@ -22,13 +22,18 @@ export const getLatestVersion = createServerFn({
             return cachedVersionInfo;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout
+
         try {
             const response = await fetch('https://api.github.com/repos/Constellation-Overwatch/constellation-overwatch/releases/latest', {
+                signal: controller.signal,
                 headers: {
                     'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'constellation-overwatch-web'
                 }
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`GitHub API error: ${response.status}`);

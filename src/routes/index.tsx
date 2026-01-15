@@ -26,7 +26,7 @@ function Home() {
           {/* TOP Section - All content above the animated title */}
           <div className="absolute top-8 md:top-12 lg:top-16 left-0 right-0 z-20 flex flex-col items-center justify-center pointer-events-none px-6">
             {/* Logo */}
-            <img src="/images/c4-logo.png" alt="Constellation Overwatch" className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 mb-4 md:mb-5" />
+            <img src="/images/c4-logo.png" alt="Constellation Overwatch" width="100" height="100" className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 mb-4 md:mb-5" />
 
             {/* Tagline */}
             <p className="text-white/70 text-xs md:text-sm lg:text-base tracking-[0.2em] md:tracking-[0.3em] uppercase mb-3 md:mb-4">
@@ -81,11 +81,11 @@ function Home() {
             <div>
               <h3 className="text-xs md:text-sm font-medium mb-3 md:mb-4 text-white/40 tracking-wider uppercase text-center">Powered By</h3>
               <div className="flex items-center justify-center gap-5 md:gap-8 lg:gap-10 flex-wrap">
-                <img src="/images/go-logo.svg" alt="Go" className="h-10 md:h-12 lg:h-14" />
-                <img src="/images/nats.avif" alt="NATS" className="h-6 md:h-8 lg:h-10" />
-                <img src="/images/templ.svg" alt="Templ" className="h-5 md:h-6 lg:h-7" />
-                <img src="/images/data-star.webp" alt="Datastar" className="h-6 md:h-8 lg:h-10" />
-                <img src="/images/turso.svg" alt="Turso" className="h-6 md:h-8 lg:h-10" />
+                <img src="/images/go-logo.svg" alt="Go" width="254" height="225" className="h-10 md:h-12 lg:h-14" />
+                <img src="/images/nats.avif" alt="NATS" width="32" height="32" className="h-6 md:h-8 lg:h-10" />
+                <img src="/images/templ.svg" alt="Templ" width="600" height="82" className="h-5 md:h-6 lg:h-7" />
+                <img src="/images/data-star.webp" alt="Datastar" width="24" height="24" className="h-6 md:h-8 lg:h-10" />
+                <img src="/images/turso.svg" alt="Turso" width="241" height="240" className="h-6 md:h-8 lg:h-10" />
               </div>
             </div>
           </div>
