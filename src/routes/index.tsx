@@ -78,14 +78,14 @@ function Home() {
             <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-5 md:mb-6">Binary Size: 38.7MB</code>
 
             {/* Powered By */}
-            <div>
+            <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl">
               <h3 className="text-xs md:text-sm font-medium mb-3 md:mb-4 text-white/40 tracking-wider uppercase text-center">Powered By</h3>
-              <div className="flex items-center justify-center gap-5 md:gap-8 lg:gap-10 flex-wrap">
-                <img src="/images/go-logo.svg" alt="Go" width="254" height="225" className="h-10 md:h-12 lg:h-14" />
-                <img src="/images/nats.avif" alt="NATS" width="32" height="32" className="h-6 md:h-8 lg:h-10" />
-                <img src="/images/templ.svg" alt="Templ" width="600" height="82" className="h-5 md:h-6 lg:h-7" />
-                <img src="/images/data-star.webp" alt="Datastar" width="24" height="24" className="h-6 md:h-8 lg:h-10" />
-                <img src="/images/turso.svg" alt="Turso" width="241" height="240" className="h-6 md:h-8 lg:h-10" />
+              <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 flex-wrap">
+                <img src="/images/go-logo.svg" alt="Go" className="h-8 sm:h-9 md:h-10 w-auto object-contain" />
+                <img src="/images/nats.avif" alt="NATS" className="h-6 sm:h-7 md:h-8 w-auto object-contain" />
+                <img src="/images/templ.svg" alt="Templ" className="h-5 sm:h-6 md:h-7 w-auto max-w-[120px] md:max-w-[150px] object-contain" />
+                <img src="/images/data-star.webp" alt="Datastar" className="h-6 sm:h-7 md:h-8 w-auto object-contain" />
+                <img src="/images/turso.svg" alt="Turso" className="h-6 sm:h-7 md:h-8 w-auto object-contain" />
               </div>
             </div>
           </div>
