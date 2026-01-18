@@ -75,7 +75,7 @@ function Home() {
                 Get Started
               </Link>
             </div>
-            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-5 md:mb-6">Binary Size: 38.7MB</code>
+            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-5 md:mb-6">38.7MB</code>
 
             {/* Powered By */}
             <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl">
