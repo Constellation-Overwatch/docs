@@ -8,40 +8,101 @@ Learn how to structure your telemetry data using Constellation Overwatch's ontol
 
 ## Overview
 
-Constellation Overwatch uses an ontological approach to telemetry data, organizing sensor readings into semantic categories that reflect the physical reality of your entities.
+Constellation Overwatch uses an ontological approach to telemetry data, organizing sensor readings into semantic categories that reflect the physical reality of your entities. The `entity_id` serves as the root primitive, with signal trees branching into position, attitude, vehicle status, power, and flight reference data.
 
-## Data Primitives
+## Entity Structure
 
-### Position
-
-Geographic location in 3D space:
+Every entity in Constellation Overwatch follows a consistent schema:
 
 ```json
 {
-  "position": {
-    "lat": 37.7749,
-    "lon": -122.4194,
-    "alt": 100.5
-  }
+  "entity_id": "eba6f509-7571-42b7-90e0-26f1883364bd",
+  "org_id": "ee3857a9-61f8-4e80-8dbd-0edef3391b91",
+  "org_name": "Organization Name",
+  "name": "HEXACOPTER",
+  "entity_type": "aircraft_vtol",
+  "status": "active",
+  "priority": "high",
+  "is_live": false,
+  "first_seen": "2026-01-15T10:00:00Z",
+  "last_seen": "2026-01-19T13:53:34Z"
 }
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- |
-| `lat` | float | Latitude in degrees |
-| `lon` | float | Longitude in degrees |
-| `alt` | float | Altitude in meters (MSL) |
+| `entity_id` | UUID | Unique identifier for the entity |
+| `org_id` | UUID | Organization that owns this entity |
+| `entity_type` | string | Classification (e.g., `aircraft_vtol`, `aircraft_fixed_wing`, `ground_vehicle`) |
+| `status` | string | Operational status (`active`, `inactive`, `maintenance`) |
+| `priority` | string | Alert priority level (`low`, `medium`, `high`, `critical`) |
+| `is_live` | boolean | Whether entity is currently streaming telemetry |
 
-### Orientation
+## Data Primitives
 
-Attitude in 3D space (Euler angles):
+### Position
+
+Dual-frame position tracking with global (WGS84) and local (NED) coordinates:
 
 ```json
 {
-  "orientation": {
-    "roll": 0.1,
-    "pitch": -0.2,
-    "yaw": 1.5
+  "position": {
+    "global": {
+      "latitude": 32.8329584,
+      "longitude": -97.3139916,
+      "altitude_msl": 186.174,
+      "altitude_relative": -0.232,
+      "accuracy_h": 0.5,
+      "accuracy_v": 1.0,
+      "timestamp": "2026-01-19T13:53:34.901448-06:00"
+    },
+    "local": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "vx": 0,
+      "vy": 0.01,
+      "vz": -0.02,
+      "timestamp": "2026-01-19T13:53:34.901448-06:00"
+    }
+  }
+}
+```
+
+**Global Position (WGS84)**
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `latitude` | float | Latitude in degrees |
+| `longitude` | float | Longitude in degrees |
+| `altitude_msl` | float | Altitude above mean sea level (meters) |
+| `altitude_relative` | float | Altitude relative to home/takeoff point (meters) |
+| `accuracy_h` | float | Horizontal position accuracy (meters) |
+| `accuracy_v` | float | Vertical position accuracy (meters) |
+
+**Local Position (NED Frame)**
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `x`, `y`, `z` | float | Position in North-East-Down frame (meters) |
+| `vx`, `vy`, `vz` | float | Velocity components (m/s) |
+
+### Attitude
+
+Orientation in 3D space with Euler angles and angular rates:
+
+```json
+{
+  "attitude": {
+    "euler": {
+      "roll": 0.0069516706,
+      "pitch": 0.024251271,
+      "yaw": 2.852021,
+      "rollspeed": -0.0012262901,
+      "pitchspeed": 0.0007064608,
+      "yawspeed": -0.0005519187,
+      "timestamp": "2026-01-19T13:53:34.901446-06:00"
+    }
   }
 }
 ```
@@ -51,66 +112,148 @@ Attitude in 3D space (Euler angles):
 | `roll` | float | Roll angle in radians |
 | `pitch` | float | Pitch angle in radians |
 | `yaw` | float | Yaw/heading in radians |
+| `rollspeed` | float | Roll rate (rad/s) |
+| `pitchspeed` | float | Pitch rate (rad/s) |
+| `yawspeed` | float | Yaw rate (rad/s) |
 
-### Sensors
+### Vehicle Status
 
-Environmental and onboard sensor readings:
+Operational state aligned with MAVLink conventions:
 
 ```json
 {
-  "sensors": {
-    "temperature": 22.5,
-    "humidity": 65,
-    "pressure": 1013.25,
-    "battery_voltage": 22.2
+  "vehicle_status": {
+    "armed": false,
+    "mode": "STABILIZE",
+    "custom_mode": 0,
+    "autopilot": 3,
+    "system_status": 4,
+    "vehicle_type": 2,
+    "landed_state": 1,
+    "load": 444,
+    "sensors_enabled": 65535,
+    "sensors_health": 65535,
+    "timestamp": "2026-01-19T13:53:34.90145-06:00"
   }
 }
 ```
 
-### State
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `armed` | boolean | Whether vehicle is armed |
+| `mode` | string | Current flight mode |
+| `landed_state` | int | Landing state (0=undefined, 1=on ground, 2=in air, 3=takeoff, 4=landing) |
+| `load` | int | System load (0-1000, representing 0-100%) |
+| `sensors_enabled` | int | Bitmask of enabled sensors |
+| `sensors_health` | int | Bitmask of healthy sensors |
 
-Operational state and status:
+### Power
+
+Battery and power system telemetry:
 
 ```json
 {
-  "state": {
-    "battery": 85,
-    "mode": "autonomous",
-    "armed": true,
-    "health": "nominal"
+  "power": {
+    "voltage": 22.4,
+    "current": 15.2,
+    "battery_remaining": 85,
+    "consumed": 1200,
+    "energy_consumed": 26.88,
+    "temperature": 35,
+    "timestamp": "2026-01-19T13:53:34.901447-06:00"
   }
 }
 ```
 
-### Performance
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `voltage` | float | Battery voltage (V) |
+| `current` | float | Current draw (A) |
+| `battery_remaining` | int | Remaining capacity (0-100%) |
+| `consumed` | int | Consumed charge (mAh) |
+| `energy_consumed` | float | Energy consumed (Wh) |
+| `temperature` | float | Battery temperature (°C) |
 
-Performance metrics:
+### VFR (Visual Flight Reference)
+
+Flight reference data for situational awareness:
 
 ```json
 {
-  "performance": {
-    "velocity": 5.2,
-    "thrust": 0.7,
-    "efficiency": 0.92
+  "vfr": {
+    "airspeed": 12.5,
+    "groundspeed": 11.8,
+    "heading": 163,
+    "climb_rate": 0.024821566,
+    "throttle": 45,
+    "altitude": 100,
+    "timestamp": "2026-01-19T13:53:34.901448-06:00"
   }
 }
 ```
 
-## Complete Telemetry Payload
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `airspeed` | float | Indicated airspeed (m/s) |
+| `groundspeed` | float | GPS ground speed (m/s) |
+| `heading` | int | Compass heading (degrees, 0-360) |
+| `climb_rate` | float | Vertical speed (m/s, positive = climbing) |
+| `throttle` | int | Throttle percentage (0-100) |
 
-A complete telemetry update combines all primitives:
+## Complete Entity Payload
+
+A complete entity combines all signal trees under the `entity_id` root:
 
 ```json
 {
-  "timestamp": "2024-01-01T12:00:00Z",
-  "entity_id": "drone-001",
-  "position": {"lat": 37.7749, "lon": -122.4194, "alt": 100},
-  "orientation": {"roll": 0.1, "pitch": -0.2, "yaw": 1.5},
-  "sensors": {"temperature": 22.5, "humidity": 65, "pressure": 1013.25},
-  "state": {"battery": 85, "mode": "autonomous", "armed": true},
-  "performance": {"velocity": 5.2, "thrust": 0.7, "efficiency": 0.92}
+  "entity_id": "eba6f509-7571-42b7-90e0-26f1883364bd",
+  "org_id": "ee3857a9-61f8-4e80-8dbd-0edef3391b91",
+  "org_name": "C*",
+  "name": "HEXACOPTER",
+  "entity_type": "aircraft_vtol",
+  "status": "active",
+  "priority": "high",
+  "is_live": true,
+  "position": {
+    "global": { "latitude": 32.8329, "longitude": -97.3139, "altitude_msl": 186.17 },
+    "local": { "x": 0, "y": 0, "z": 0, "vx": 0, "vy": 0.01, "vz": -0.02 }
+  },
+  "attitude": {
+    "euler": { "roll": 0.007, "pitch": 0.024, "yaw": 2.85 }
+  },
+  "vehicle_status": { "armed": false, "mode": "STABILIZE", "landed_state": 1 },
+  "power": { "voltage": 22.4, "battery_remaining": 85 },
+  "vfr": { "groundspeed": 0.01, "heading": 163, "climb_rate": 0.02 }
 }
 ```
+
+## Extending Signal Trees
+
+<Callout type="info">
+The `entity_id` ontology primitive provides a flexible foundation for real-time state representation that extends far beyond aircraft and drones. Robots, ground vehicles, maritime vessels, industrial equipment—any machine capable of publishing telemetry can network into Constellation Overwatch by extending the signal tree with domain-specific semantic concepts.
+</Callout>
+
+For example, a ground robot might extend with:
+
+```json
+{
+  "entity_type": "ground_robot",
+  "locomotion": {
+    "wheel_speeds": [1.2, 1.2, 1.1, 1.1],
+    "steering_angle": 0.05,
+    "odometry": { "distance": 1523.4, "runtime_hours": 12.5 }
+  },
+  "manipulator": {
+    "joint_angles": [0.1, -0.5, 1.2, 0.0, 0.3, 0.0],
+    "gripper_state": "open",
+    "payload_kg": 0
+  }
+}
+```
+
+<Callout type="warn">
+Custom signal tree extensions require a protocol bridge to translate native telemetry into the Constellation schema. The WebUI provides native visualization for standard aerospace primitives (position, attitude, power, VFR) but will not automatically render custom extensions—those require custom UI components or API integration.
+</Callout>
 
 ## Publishing Telemetry
 
@@ -122,7 +265,8 @@ nats kv put CONSTELLATION_GLOBAL_STATE "$ENTITY_ID" '{"position": {...}}'
 
 ## Best Practices
 
-1. **Include timestamps** - Always include ISO 8601 timestamps
-2. **Use SI units** - Meters, radians, Celsius, etc.
-3. **Batch updates** - Combine related data in single updates
-4. **Validate data** - Check ranges before publishing
+1. **Include timestamps** - Every signal tree branch should include ISO 8601 timestamps
+2. **Use SI units** - Meters, radians, Celsius, m/s, etc.
+3. **Preserve precision** - Maintain sensor precision through the pipeline
+4. **Batch updates** - Combine related signals in single updates for consistency
+5. **Validate ranges** - Check values against physical limits before publishing
