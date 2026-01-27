@@ -75,7 +75,19 @@ function Home() {
                 Get Started
               </Link>
             </div>
-            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-5 md:mb-6">41.9MB</code>
+            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-2">41.9MB</code>
+            {/* GitHub Stars */}
+            <a
+              href="https://github.com/Constellation-Overwatch/constellation-overwatch"
+              target="_blank"
+              rel="noreferrer"
+              className="pointer-events-auto mb-5 md:mb-6"
+            >
+              <img
+                src="https://img.shields.io/github/stars/Constellation-Overwatch/constellation-overwatch?style=social"
+                alt="GitHub Repo stars"
+              />
+            </a>
 
             {/* Powered By */}
             <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl">
