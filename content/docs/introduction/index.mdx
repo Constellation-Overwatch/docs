@@ -49,19 +49,28 @@ powershell -ExecutionPolicy Bypass -c "irm https://constellation-overwatch.githu
 
 | Feature | Description |
 | ------- | ----------- |
-| **Real-time Messaging** | Low-latency pub/sub communication powered by NATS JetStream |
-| **Telemetry Streaming** | Efficient handling of high-frequency sensor data from edge devices |
-| **Multi-Entity Support** | Manage drones, robots, sensors, and autonomous systems |
-| **Secure API** | RESTful API with bearer token authentication |
-| **Offline First** | Full security perimeter isolation for air-gapped environments |
-| **Edge Architecture** | Portable deployment with proximity-based processing |
+| **Real-time Pub/Sub Messaging** | Low-latency communication between edge devices and control systems |
+| **Durable Event Streams** | NATS JetStream for reliable message delivery and persistence |
+| **Multi-Entity Fleet Support** | Manage drones, robots, sensors, and other autonomous systems |
+| **RESTful API** | Bearer token authentication for secure HTTP access |
+| **Embedded NATS Server** | Self-contained messaging with no external dependencies |
+| **High-Frequency Telemetry** | Streaming with efficient handling of sensor data |
+| **Real-time Web Dashboard** | Powered by Server-Sent Events (SSE) and Datastar framework |
+| **Type-Safe Templates** | Templ for reactive Go-based web components |
+| **SQLite Database** | Auto-initialization and schema management |
+| **Event-Driven Architecture** | Workers for entities, commands, telemetry, and events |
+| **Interactive Maps** | MapLibre web components with global KV watcher |
+| **Prometheus Metrics** | NATS and worker collectors for observability |
+| **Terminal UI (TUI)** | BubbleTea-based dashboard with real-time entity, log, and system panels |
+| **Video Streaming & WebRTC** | H.264 codec support, keyframe buffering, and signaling |
+| **Self-Update** | Binary auto-update from GitHub releases via `--update` flag |
 
 ### Technology Stack
 
 Powered by modern, battle-tested technologies:
 
 - **Go** - High-performance backend with minimal footprint
-- **NATS JetStream** - Embedded messaging with global clustering
-- **Templ** - Type-safe HTML templating
-- **Datastar** - Real-time UI framework
-- **Turso** - Embedded SQLite database
+- **NATS JetStream** - Embedded messaging with durable streams
+- **Templ** - Type-safe Go HTML templates
+- **Datastar** - Hypermedia framework for reactive UI
+- **SQLite** - Embedded relational database

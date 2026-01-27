@@ -8,11 +8,94 @@ System architecture overview for Constellation Overwatch.
 
 ## Overview
 
-Constellation Overwatch is designed as a lightweight, edge-first data fabric that brings together telemetry, video, and AI processing in a unified platform.
+Constellation Overwatch is designed as a distributed, event-driven C4 Industrial Data Fabric that brings together telemetry, video, and AI processing in a unified platform built on NATS JetStream for reliable, low-latency messaging with atomic operations and durable streams.
 
 ## System Diagram
 
 <img src="/images/d2.svg" alt="Constellation Overwatch Architecture" style={{ width: '100%', maxWidth: '900px', margin: '2rem auto', display: 'block' }} />
+
+## API Service Diagram
+
+<Mermaid chart="
+graph LR
+    subgraph Client_Layer[Client Layer]
+        C1[Web Dashboard]
+        C2[Mobile App]
+        C3[CLI Tools]
+        C4[Edge Devices]
+    end
+    subgraph API_Gateway[API Gateway]
+        API[REST API :8080]
+        AUTH[Bearer Auth Middleware]
+    end
+    subgraph Core_Services[Core Services]
+        OS[Organization Service]
+        ES[Entity Service]
+    end
+    subgraph Data_Layer[Data Layer]
+        DB[(SQLite DB)]
+        NATS[(NATS JetStream KV:entity_id)]
+    end
+    subgraph NATS_Streams[NATS Streams]
+        S1[CONSTELLATION_ENTITIES]
+        S2[CONSTELLATION_EVENTS]
+        S3[CONSTELLATION_TELEMETRY]
+        S4[CONSTELLATION_COMMANDS]
+    end
+    C1 & C2 & C3 --> API
+    C4 <--> NATS
+    API --> AUTH
+    AUTH --> OS & ES
+    OS & ES --> DB
+    ES --> NATS
+    NATS --> S1 & S2 & S3 & S4
+" />
+
+## Data Flow Sequence
+
+<Mermaid chart="
+sequenceDiagram
+    participant D as Drone/Robot
+    participant N as NATS JetStream
+    participant KV as KV Store (CONSTELLATION_GLOBAL_STATE)
+    participant W as Workers (Entity/Telemetry/Event)
+    participant A as API Service
+    participant DB as SQLite DB
+    participant UI as Web UI (SSE)
+    Note over D,UI: Entity Registration Flow
+    UI->>A: POST /api/v1/entities
+    A->>DB: INSERT entity
+    A->>N: Publish entity.created event
+    A->>KV: Sync entity to KV[entity_id]
+    A-->>UI: Return Entity
+    N->>W: EntityWorker processes event
+    W->>DB: Log entity creation
+    W-->>UI: SSE update (if subscribed)
+    Note over D,UI: Telemetry Publishing Flow
+    D->>N: Publish to constellation.telemetry.{org_id}.{entity_id}
+    N->>N: Store in CONSTELLATION_TELEMETRY stream
+    N->>W: TelemetryWorker receives message
+    W->>KV: Update entity state with latest telemetry
+    KV-->>UI: KV watcher triggers SSE update
+    UI->>UI: Datastar patches UI elements
+    Note over D,UI: Command Flow
+    UI->>A: POST command
+    A->>N: Publish to constellation.commands.{org_id}.{entity_id}
+    N->>N: Store in CONSTELLATION_COMMANDS stream
+    N->>D: CommandWorker delivers command
+    D->>N: Publish command.ack
+    N->>W: Process acknowledgment
+    W->>KV: Update command status
+    KV-->>UI: SSE notification
+    Note over D,UI: Web Dashboard Live Updates
+    UI->>A: GET /sse/stream (SSE connection)
+    A->>N: Subscribe to constellation.>
+    loop Real-time Updates
+        N->>A: New message on any subject
+        A->>UI: SSE PatchElements (Datastar)
+        UI->>UI: Update DOM without reload
+    end
+" />
 
 ## Core Components
 
@@ -21,8 +104,37 @@ Constellation Overwatch is designed as a lightweight, edge-first data fabric tha
 | Component | Technology | Purpose |
 | --------- | ---------- | ------- |
 | **Messaging** | NATS JetStream | Real-time pub/sub and persistent messaging |
-| **Database** | Turso (SQLite) | Embedded relational storage |
+| **Database** | SQLite | Embedded relational storage with auto-initialization |
 | **API** | Go + Templ | RESTful API and server-rendered UI |
+| **Web Dashboard** | Datastar + SSE | Real-time reactive UI with Server-Sent Events |
+| **Metrics** | Prometheus | NATS and worker collectors for observability |
+
+### Workers
+
+Background event processors that drive the event-driven architecture:
+
+| Worker | Purpose |
+| ------ | ------- |
+| **EntityWorker** | Processes entity creation, updates, deletions, and status changes |
+| **TelemetryWorker** | Handles high-frequency sensor data and updates KV state |
+| **CommandWorker** | Routes commands to entities and processes acknowledgments |
+| **EventWorker** | Processes general events and triggers state sync |
+| **VideoWorker** | Manages video stream lifecycle and WebRTC signaling |
+
+### NATS Streams
+
+| Stream | Purpose |
+| ------ | ------- |
+| `CONSTELLATION_ENTITIES` | Entity lifecycle events (created, updated, deleted, status) |
+| `CONSTELLATION_EVENTS` | General system and integration events |
+| `CONSTELLATION_TELEMETRY` | High-frequency sensor and position data |
+| `CONSTELLATION_COMMANDS` | Command dispatch and acknowledgment |
+
+### KV Store
+
+| Bucket | Purpose |
+| ------ | ------- |
+| `CONSTELLATION_GLOBAL_STATE` | Real-time entity state keyed by `entity_id`, watched by SSE handlers for live UI updates |
 
 ### Edge Layer
 

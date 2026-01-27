@@ -50,7 +50,7 @@ Organizations group your entities (drones, robots, sensors) under a single manag
 2. Click **"Create Organization"**
 3. Fill in the form:
    - **Name**: Your organization name
-   - **Type**: `civilian`, `military`, or `commercial`
+   - **Type**: `civilian`, `military`, `commercial`, or `ngo`
    - **Description**: Brief description
 
 ### Option B: API
@@ -104,11 +104,15 @@ export ENTITY_ID="your-entity-id-from-step-3"
 # Publish ontological telemetry to CONSTELLATION_GLOBAL_STATE KV bucket
 nats kv put CONSTELLATION_GLOBAL_STATE "$ENTITY_ID" \
   '{
-    "position": {"lat": 37.7749, "lon": -122.4194, "alt": 100},
-    "orientation": {"roll": 0.1, "pitch": -0.2, "yaw": 1.5},
-    "sensors": {"temperature": 22.5, "humidity": 65, "pressure": 1013.25},
-    "state": {"battery": 85, "mode": "autonomous", "armed": true},
-    "performance": {"velocity": 5.2, "thrust": 0.7, "efficiency": 0.92}
+    "position": {
+      "global": {"latitude": 37.7749, "longitude": -122.4194, "altitude_msl": 100.0, "altitude_relative": 50.0}
+    },
+    "attitude": {
+      "euler": {"roll": 0.1, "pitch": -0.2, "yaw": 1.5}
+    },
+    "vehicle_status": {"armed": true, "mode": "AUTO", "landed_state": 2},
+    "power": {"voltage": 22.4, "current": 15.2, "battery_remaining": 85},
+    "vfr": {"groundspeed": 5.2, "heading": 163, "climb_rate": 0.5}
   }'
 ```
 
