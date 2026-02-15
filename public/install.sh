@@ -226,8 +226,7 @@ API_BEARER_TOKEN=your-api-bearer-token
 NATS_ENABLE_AUTH=true
 NATS_AUTH_TOKEN=your-nats-auth-token
 
-DB_PATH=$DATA_DIR/db/constellation.db
-NATS_DATA_DIR=$DATA_DIR/nats
+OVERWATCH_DATA_DIR=$DATA_DIR
 EOF
 
     say_verbose "Created config at $env_file"
@@ -410,7 +409,7 @@ ${BOLD}INSTALL LOCATIONS:${NC}
     ├── data/             Database + NATS storage
     ├── env               PATH script (sh/bash/zsh)
     ├── env.fish          PATH script (fish)
-    ├── .env              Configuration
+    ├── .env              Configuration (OVERWATCH_DATA_DIR, tokens)
     └── receipt.json      Install metadata
 EOF
 }
