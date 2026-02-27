@@ -31,7 +31,7 @@ function Home() {
 
             {/* Tagline */}
             <p className="text-white/70 text-xs md:text-sm lg:text-base tracking-[0.2em] md:tracking-[0.3em] uppercase mb-3 md:mb-4">
-              Open Source C4 for the Industrial Edge
+              Vendor Agnostic C4ISR Data Plane
             </p>
 
             {/* Version Badge */}
@@ -41,7 +41,7 @@ function Home() {
 
             {/* Description */}
             <p className="text-white/90 text-sm md:text-lg lg:text-xl font-medium mb-2 md:mb-3 max-w-sm md:max-w-2xl lg:max-w-3xl mx-auto text-center leading-relaxed">
-              Data Fabric & Toolbelt for Agentic Drones, Robots, Sensors, and Video Streams
+              Data Fabric & Toolbelt for Drones, Robotics, and the Industrial Edge
             </p>
             <p className="text-white/50 text-xs md:text-sm lg:text-base max-w-xs md:max-w-xl lg:max-w-2xl mx-auto text-center mb-6 md:mb-8">
               Rapid response industrial data stack designed with ontological data primitives. Use <code>entity_id</code> to stream real time signal trees for vendor agnostic swarm orchestration research & deployment.
@@ -76,7 +76,7 @@ function Home() {
                 Get Started
               </Link>
             </div>
-            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-2">41.9MB</code>
+            <code className="text-xs bg-black/40 text-white/50 px-2 py-1 rounded font-mono mb-2">39MB</code>
             {/* GitHub Info */}
             <a
               href="https://github.com/Constellation-Overwatch/constellation-overwatch"

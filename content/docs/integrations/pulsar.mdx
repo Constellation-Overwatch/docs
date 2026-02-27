@@ -1,0 +1,291 @@
+---
+title: Pulsar
+description: Edge sync agent for GCS-in-a-Box — fleet registration, MAVLink relay, video bridge, and on-device detection in a single binary
+icon: Rocket
+---
+
+Edge sync agent that connects ground control stations to Constellation Overwatch. Single 14MB static binary, zero config to first telemetry.
+
+<Callout type="info">
+  Pulsar v0.0.1-beta is the initial public release. Fleet registration, MAVLink relay, and video bridging are production-ready. On-device detection requires CGO and is build-tag gated.
+</Callout>
+
+## About
+
+[Pulsar](https://github.com/Constellation-Overwatch/pulsar) is the edge companion to Constellation Overwatch. It runs on a GCS device (laptop, NUC, Raspberry Pi) and handles everything between your fleet assets and the Overwatch data plane:
+
+- **Auto-registers** entities with the Overwatch API from a declarative YAML config
+- **Relays MAVLink** telemetry over NATS JetStream with per-entity subject routing
+- **Bridges video** streams via RTSP with WebRTC/HLS support through MediaMTX
+- **Runs YOLO detection** on-device with bounding-box overlay (optional, build-tag gated)
+- **Syncs continuously** — watches config for changes every 30s, reconciles without restarts
+
+## Highlights
+
+- **Guided first-time setup** — interactive terminal wizard generates fleet config on first boot
+- **Declarative fleet config** — define entities in YAML, Pulsar handles registration and reconciliation
+- **Idempotent registration** — entity UUIDs tracked across restarts, no duplicates
+- **MAVLink relay** — 1:1 UDP listeners per entity with auto-assigned sequential ports
+- **NATS JetStream publishing** — telemetry envelopes on `constellation.telemetry.{entity_id}.{msg_type}`
+- **KV state aggregation** — per-entity device state merged by message type
+- **RTSP video bridge** — per-entity video relay with MediaMTX auto-detection or embedded fallback
+- **On-device detection** — YOLO26 ONNX inference at 15fps with bounding-box overlay
+- **Docker ready** — multi-stage Alpine image, `CGO_ENABLED=0` for standard builds
+- **Cross-platform** — Linux and macOS (amd64, arm64)
+
+## Prerequisites
+
+- Go 1.25 or higher
+- A running [Constellation Overwatch](https://github.com/Constellation-Overwatch/constellation-overwatch) instance
+- NATS server with JetStream enabled
+- [Task](https://taskfile.dev/) runner (optional, recommended)
+
+## Quick Start
+
+### Installation
+
+```bash
+# Clone
+git clone https://github.com/Constellation-Overwatch/pulsar.git
+cd pulsar
+
+# Configure credentials
+cp .env.example .env
+# Edit .env with your Overwatch API key and NATS nkey
+
+# Run (guided setup on first boot if no fleet.yaml exists)
+task dev
+```
+
+### Docker Deployment
+
+```bash
+# Build and run full stack (Pulsar + MediaMTX + TAK Server)
+docker compose up -d
+
+# Or build standalone
+task docker-build
+docker run --env-file .env -v $(pwd)/config:/app/config pulsar:latest
+```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+| -------- | -------- | ------- | ----------- |
+| `C4_API_KEY` | Yes | — | Overwatch API bearer token |
+| `C4_BASE_URL` | Yes | — | Overwatch API URL |
+| `C4_NATS_KEY` | Yes | — | NATS nkey seed for JetStream auth |
+| `C4_NATS_URL` | No | `nats://localhost:4222` | NATS server URL |
+| `MAVLINK_BASE_PORT` | No | `14550` | Starting port for auto-assigned MAVLink listeners |
+| `RTSP_HOST` | No | `localhost` | Hostname for local RTSP connections |
+| `ADVERTISE_HOST` | No | Auto-discovered | Hostname/IP published to Overwatch for external consumers |
+| `MEDIAMTX_API_URL` | No | `http://localhost:9997` | MediaMTX API URL for RTSP server auto-detection |
+
+### Fleet Config
+
+Define your fleet in `config/fleet.yaml`:
+
+```yaml
+organization:
+  name: "GCS Alpha Station"
+  type: "civilian"
+  description: "Rapid response ground control station"
+
+entities:
+  - name: "Primary UAV"
+    type: "uav"
+    priority: "high"
+    status: "active"
+    mavlink: true                # auto-assign port from MAVLINK_BASE_PORT
+    video_config:
+      protocol: "rtsp"
+      port: 8554
+      source: "rtsp://admin:pass@10.0.0.50:554/cam1"
+
+  - name: "Ground Camera"
+    type: "isr_sensor"
+    priority: "normal"
+    status: "active"
+    video_config:
+      protocol: "rtsp"
+      port: 8554
+      device: "/dev/video0"     # local capture device
+```
+
+**Entity types:** `uav`, `fixed_wing`, `vtol`, `helicopter`, `airship`, `ground_vehicle`, `boat`, `isr_sensor`, `camera`, `gcs`
+
+### Reconciliation
+
+Pulsar reconciles desired state (`fleet.yaml`) against actual state (`c4.json`) on every boot and sync cycle:
+
+| | `fleet.yaml` | `c4.json` |
+| --- | --- | --- |
+| **Role** | Desired state | Actual state |
+| **Author** | Human | Machine |
+| **Git** | Committed | Gitignored |
+| **Contains** | Names, types, `mavlink: true` | UUIDs, resolved ports, RTSP URLs |
+
+Entity names are used to track UUIDs across restarts. Drift in priority, status, or type triggers automatic updates on Overwatch. Entities removed from config are cleaned up.
+
+## Architecture
+
+<Mermaid chart="
+sequenceDiagram
+    participant D as Drone (MAVLink)
+    participant P as Pulsar
+    participant N as NATS JetStream
+    participant KV as KV Store
+    participant OW as Overwatch API
+
+    Note over P,OW: Boot: Registration
+    P->>OW: Register org + entities (fleet.yaml)
+    OW-->>P: Entity UUIDs
+    P->>P: Write c4.json (resolved state)
+
+    Note over D,KV: Runtime: Telemetry
+    D->>P: MAVLink UDP frames
+    P->>P: Parse frame, build envelope
+    P->>N: Publish telemetry.{entity_id}.{msg_type}
+    P->>KV: Merge device state by message type
+    KV-->>OW: Overwatch reads latest state
+" />
+
+### Service Modules
+
+| Service | Package | Description |
+| ------- | ------- | ----------- |
+| **Registry** | `pkg/services/registry/` | Overwatch API registration and reconciliation |
+| **Relay** | `pkg/services/relay/` | Per-entity MAVLink UDP listeners and frame parsing |
+| **Publisher** | `pkg/services/publisher/` | NATS JetStream publishing and KV state aggregation |
+| **Video** | `pkg/services/video/` | RTSP server, video bridge, detection overlay |
+| **Detector** | `pkg/services/detector/` | YOLO26 ONNX inference (build-tag gated) |
+
+## NATS Integration
+
+### Subject Hierarchy
+
+```text
+constellation.telemetry.{entity_id}.heartbeat
+constellation.telemetry.{entity_id}.globalpositionint
+constellation.telemetry.{entity_id}.attitude
+constellation.telemetry.{entity_id}.vfr_hud
+constellation.telemetry.{entity_id}.systemstatus
+```
+
+### Consuming Messages
+
+```bash
+# Subscribe to specific entity
+nats sub "constellation.telemetry.{entity_id}.>"
+
+# Subscribe to all heartbeats
+nats sub "constellation.telemetry.*.heartbeat"
+
+# Subscribe to all telemetry
+nats sub "constellation.telemetry.>"
+```
+
+### KV Store
+
+Bucket: `CONSTELLATION_GLOBAL_STATE`
+Key pattern: `{entity_id}.mavlink`
+
+Device state is aggregated — each message type merges into the existing state rather than overwriting it. This means the KV entry always reflects the latest value from every message type received.
+
+### Telemetry Envelope
+
+```json
+{
+  "drone_id": "8383e1cc-7dcd-4a51-af80-58ec884bf407",
+  "source": "Primary UAV",
+  "timestamp_relay": "2026-02-27T16:42:13Z",
+  "msg_id": 0,
+  "msg_name": "Heartbeat",
+  "fields": {
+    "type": 2,
+    "autopilot": 3,
+    "base_mode": 89,
+    "custom_mode": 4,
+    "system_status": 4
+  }
+}
+```
+
+## Video Pipeline
+
+Pulsar supports two video source types per entity:
+
+| Source | Config Key | Description |
+| ------ | ---------- | ----------- |
+| Network RTSP | `source` | Proxied through MediaMTX or read by detector |
+| Local Device | `device` | Captured via OpenCV, encoded to H264 |
+
+### Host Configuration
+
+Pulsar uses separate hosts for local and external video URLs:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `RTSP_HOST` | Where local services (bridge, detector) connect |
+| `ADVERTISE_HOST` | Where external consumers (Overwatch UI) connect |
+
+The registry generates advertised endpoints from `ADVERTISE_HOST`:
+
+```yaml
+stream_url:   rtsp://{ADVERTISE_HOST}:{port}/{entity_id}
+overlay_url:  rtsp://{ADVERTISE_HOST}:{port}/{entity_id}/pulsar
+webrtc_url:   http://{ADVERTISE_HOST}:8889/{entity_id}/pulsar
+hls_url:      http://{ADVERTISE_HOST}:8888/{entity_id}/pulsar
+```
+
+### Detection Overlay
+
+When built with `-tags detection`, Pulsar runs YOLO26 ONNX inference on the video stream and publishes an overlay feed at the `/pulsar` path suffix. Detection runs every 5th frame with cached results drawn on all frames for smooth 15fps output.
+
+```bash
+# Build with detection
+task build:detection
+
+# Run with detection (needs ONNX Runtime + OpenCV)
+MODEL_PATH=data/yolo26s.onnx task dev:detection
+```
+
+## MAVLink Port Assignment
+
+Ports are auto-assigned sequentially from `MAVLINK_BASE_PORT` (default `14550`):
+
+| Entity | Config | Resolved Port |
+| ------ | ------ | ------------- |
+| Primary UAV | `mavlink: true` | `:14550` |
+| Secondary UAV | `mavlink: true` | `:14551` |
+| Fixed Overwatch | `mavlink: {port: 14560}` | `:14560` |
+| Ground Camera | *(no mavlink key)* | *(no listener)* |
+
+Explicit ports are reserved first, then auto-assigned ports fill sequentially, skipping conflicts.
+
+## Project Structure
+
+```text
+pulsar/
+├── cmd/microlith/main.go          # Entry point, guided setup, sync loop
+├── pkg/services/
+│   ├── registry/                  # Overwatch API registration
+│   ├── relay/                     # MAVLink UDP listeners
+│   ├── publisher/                 # NATS JetStream + KV publishing
+│   ├── detector/                  # YOLO26 ONNX inference (build-tag gated)
+│   ├── video/                     # RTSP server, bridge, overlay
+│   └── logger/                    # Zap-based structured logging
+├── pkg/shared/                    # Config types, HTTP client, network utils
+├── internal/x264-go/              # Local fork (WebRTC IDR keyframe fix)
+├── config/fleet.yaml              # Fleet config (user-authored)
+├── Dockerfile                     # Multi-stage Alpine build
+└── Taskfile.yml                   # Build commands
+```
+
+---
+
+<Callout type="info">
+  For full documentation, configuration reference, and architecture details, see the [Pulsar README](https://github.com/Constellation-Overwatch/pulsar) or the [release notes](https://github.com/Constellation-Overwatch/pulsar/releases).
+</Callout>

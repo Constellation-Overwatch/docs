@@ -2,6 +2,7 @@
   "title": "Integrations",
   "pages": [
     "index",
+    "pulsar",
     "aero-arc-relay",
     "vision",
     "ffmpeg"

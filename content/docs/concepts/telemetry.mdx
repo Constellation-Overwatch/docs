@@ -200,6 +200,41 @@ Flight reference data for situational awareness:
 | `climb_rate` | float | Vertical speed (m/s, positive = climbing) |
 | `throttle` | int | Throttle percentage (0-100) |
 
+### Semantic Detections
+
+Real-time object detection and semantic concepts matched and natively stored via the global KV:
+
+```json
+{
+  "detections": {
+    "objects": [
+      {
+        "class": "person",
+        "confidence": 0.89,
+        "bbox": { "x": 120, "y": 45, "w": 30, "h": 80 },
+        "tracking_id": "trk_1"
+      },
+      {
+        "class": "vehicle",
+        "confidence": 0.95,
+        "bbox": { "x": 340, "y": 210, "w": 150, "h": 90 },
+        "tracking_id": "trk_2"
+      }
+    ],
+    "frame_id": 45892,
+    "timestamp": "2026-01-19T13:53:35.102345-06:00"
+  }
+}
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `objects` | array | Array of detected semantic concepts |
+| `class` | string | Ontological category (e.g., `person`, `vehicle`, `fire`) |
+| `confidence` | float | Detection confidence score (0.0-1.0) |
+| `bbox` | object | Bounding box coordinates in video frame |
+| `tracking_id` | string | Unique identifier for the tracked object across frames |
+
 ## Complete Entity Payload
 
 A complete entity combines all signal trees under the `entity_id` root:
@@ -221,9 +256,8 @@ A complete entity combines all signal trees under the `entity_id` root:
   "attitude": {
     "euler": { "roll": 0.007, "pitch": 0.024, "yaw": 2.85 }
   },
-  "vehicle_status": { "armed": false, "mode": "STABILIZE", "landed_state": 1 },
-  "power": { "voltage": 22.4, "battery_remaining": 85 },
-  "vfr": { "groundspeed": 0.01, "heading": 163, "climb_rate": 0.02 }
+  "vfr": { "groundspeed": 0.01, "heading": 163, "climb_rate": 0.02 },
+  "detections": { "objects": [ { "class": "person", "confidence": 0.89 } ] }
 }
 ```
 
