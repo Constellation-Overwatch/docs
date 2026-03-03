@@ -208,6 +208,25 @@ EOF
     say_verbose "Install receipt written to $receipt_path"
 }
 
+# Prompt for admin email (interactive installs only)
+prompt_admin_email() {
+    ADMIN_EMAIL=""
+
+    # Skip if not interactive (piped install)
+    if [ ! -t 0 ]; then
+        return 0
+    fi
+
+    echo ""
+    printf "${BOLD}Admin setup${NC}\n"
+    printf "Enter your email for the bootstrap admin account.\n"
+    printf "This creates the first admin user on first run.\n"
+    echo ""
+    printf "  Admin email [admin@localhost]: "
+    read -r ADMIN_EMAIL
+    ADMIN_EMAIL="${ADMIN_EMAIL:-}"
+}
+
 # Create ready-to-use .env config
 create_default_env() {
     local env_file="$OVERWATCH_HOME/.env"
@@ -220,13 +239,29 @@ create_default_env() {
 
     cat <<EOF > "$env_file"
 # Constellation Overwatch Configuration
-# Data: $DATA_DIR/
+# https://github.com/Constellation-Overwatch/constellation-overwatch
 
-API_BEARER_TOKEN=your-api-bearer-token
-NATS_ENABLE_AUTH=true
-NATS_AUTH_TOKEN=your-nats-auth-token
+# --- Bootstrap admin (first run only) ---
+# On first run, Overwatch creates an admin account and prints
+# a one-time invite URL to the console for passkey setup.
+${ADMIN_EMAIL:+OVERWATCH_ADMIN_EMAIL=$ADMIN_EMAIL}${ADMIN_EMAIL:-# OVERWATCH_ADMIN_EMAIL=admin@localhost}
 
+# --- Data ---
 OVERWATCH_DATA_DIR=$DATA_DIR
+
+# --- Server ---
+# PORT=8080
+# HOST=0.0.0.0
+# ALLOWED_ORIGINS=http://localhost:8080
+
+# --- NATS (embedded) ---
+# NATS_HOST=127.0.0.1
+# NATS_PORT=4222
+
+# --- Production ---
+# OVERWATCH_KEY_HASH_SECRET=     # HMAC-SHA256 secret for API key hashing
+# OVERWATCH_RPID=yourdomain.com
+# OVERWATCH_BASE_URL=https://yourdomain.com
 EOF
 
     say_verbose "Created config at $env_file"
@@ -382,7 +417,7 @@ ${BOLD}USAGE:${NC}
 
 ${BOLD}OPTIONS:${NC}
     -h, --help              Show this help message
-    -v, --version VER       Install a specific version (e.g., v0.0.5-beta)
+    -v, --version VER       Install a specific version (e.g., v0.1.0)
     -q, --quiet             Suppress non-essential output
     --verbose               Enable verbose output
     --no-modify-path        Don't modify PATH in shell configs
@@ -395,13 +430,13 @@ ${BOLD}ENVIRONMENT VARIABLES:${NC}
 
 ${BOLD}EXAMPLES:${NC}
     # Install latest version
-    curl -fsSL https://constellation-overwatch.github.io/overwatch/install.sh | bash
+    curl -fsSL https://constellation-overwatch.dev/install.sh | bash
 
     # Install specific version
-    curl -fsSL https://constellation-overwatch.github.io/overwatch/install.sh | bash -s -- -v v0.0.5-beta
+    curl -fsSL https://constellation-overwatch.dev/install.sh | bash -s -- -v v0.1.0
 
-    # Install without modifying PATH
-    OVERWATCH_NO_MODIFY_PATH=1 curl -fsSL https://constellation-overwatch.github.io/overwatch/install.sh | bash
+    # Install without modifying PATH (non-interactive)
+    OVERWATCH_NO_MODIFY_PATH=1 curl -fsSL https://constellation-overwatch.dev/install.sh | bash
 
 ${BOLD}INSTALL LOCATIONS:${NC}
     ~/.overwatch/
@@ -409,7 +444,7 @@ ${BOLD}INSTALL LOCATIONS:${NC}
     ├── data/             Database + NATS storage
     ├── env               PATH script (sh/bash/zsh)
     ├── env.fish          PATH script (fish)
-    ├── .env              Configuration (OVERWATCH_DATA_DIR, tokens)
+    ├── .env              Configuration
     └── receipt.json      Install metadata
 EOF
 }
@@ -466,26 +501,52 @@ main() {
     # Write install receipt
     write_receipt "$APP_VERSION"
 
-    # Create example config
+    # Prompt for admin email (interactive only)
+    prompt_admin_email
+
+    # Create config
     create_default_env
 
     # Final output
     echo ""
-    printf "${GREEN}${BOLD}Overwatch installed!${NC}\n"
+    printf "${GREEN}${BOLD}Overwatch ${APP_VERSION} installed!${NC}\n"
     echo ""
 
-    # Show single command to get started (no restart needed)
+    printf "${BOLD}Getting started${NC}\n"
+    echo ""
+
+    # Step 1: start command
     if [ "$needs_shell_restart" = "1" ]; then
-        say "To start now, run:"
+        printf "  ${CYAN}1.${NC} Start the server:\n"
         echo ""
-        printf "    ${CYAN}source ~/.overwatch/env && overwatch${NC}\n"
+        printf "     ${CYAN}source ~/.overwatch/env && overwatch start${NC}\n"
     else
-        say "To start, run:"
+        printf "  ${CYAN}1.${NC} Start the server:\n"
         echo ""
-        printf "    ${CYAN}overwatch${NC}\n"
+        printf "     ${CYAN}overwatch start${NC}\n"
     fi
     echo ""
-    printf "Then visit ${CYAN}http://localhost:8080${NC}\n"
+
+    # Step 2: invite URL
+    printf "  ${CYAN}2.${NC} On first run, a one-time invite URL is printed to the console.\n"
+    printf "     Open it in your browser to set up your admin passkey.\n"
+    echo ""
+
+    # Step 3: dashboard
+    printf "  ${CYAN}3.${NC} After passkey setup, log in at ${CYAN}http://localhost:8080${NC}\n"
+    echo ""
+
+    # Useful commands
+    printf "${BOLD}Commands${NC}\n"
+    printf "  overwatch start              Headless mode\n"
+    printf "  overwatch start --tui        TUI dashboard\n"
+    printf "  overwatch update             Update to latest version\n"
+    printf "  overwatch start --help       All server options\n"
+    echo ""
+
+    # Config location
+    printf "${BOLD}Config${NC}: ${CYAN}~/.overwatch/.env${NC}\n"
+    printf "${BOLD}Data${NC}:   ${CYAN}~/.overwatch/data/${NC}\n"
     echo ""
 }
 
