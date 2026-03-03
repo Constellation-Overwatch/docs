@@ -208,23 +208,24 @@ EOF
     say_verbose "Install receipt written to $receipt_path"
 }
 
-# Prompt for admin email (interactive installs only)
+# Prompt for admin email
 prompt_admin_email() {
     ADMIN_EMAIL=""
 
-    # Skip if not interactive (piped install)
-    if [ ! -t 0 ]; then
+    # Need a terminal to prompt — read from /dev/tty so it works
+    # even when the script itself is piped (curl ... | bash)
+    if [ ! -e /dev/tty ]; then
         return 0
     fi
 
     echo ""
     printf "${BOLD}Admin setup${NC}\n"
-    printf "Enter your email for the bootstrap admin account.\n"
-    printf "This creates the first admin user on first run.\n"
+    printf "On first run, Overwatch bootstraps an admin account and prints\n"
+    printf "a one-time invite URL to set up your passkey.\n"
     echo ""
     printf "  Admin email [admin@localhost]: "
-    read -r ADMIN_EMAIL
-    ADMIN_EMAIL="${ADMIN_EMAIL:-}"
+    read -r ADMIN_EMAIL < /dev/tty || true
+    ADMIN_EMAIL="${ADMIN_EMAIL:-admin@localhost}"
 }
 
 # Create ready-to-use .env config
@@ -244,7 +245,7 @@ create_default_env() {
 # --- Bootstrap admin (first run only) ---
 # On first run, Overwatch creates an admin account and prints
 # a one-time invite URL to the console for passkey setup.
-${ADMIN_EMAIL:+OVERWATCH_ADMIN_EMAIL=$ADMIN_EMAIL}${ADMIN_EMAIL:-# OVERWATCH_ADMIN_EMAIL=admin@localhost}
+OVERWATCH_ADMIN_EMAIL=$ADMIN_EMAIL
 
 # --- Data ---
 OVERWATCH_DATA_DIR=$DATA_DIR
