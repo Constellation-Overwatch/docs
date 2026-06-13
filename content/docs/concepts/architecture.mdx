@@ -8,7 +8,7 @@ System architecture overview for Constellation Overwatch.
 
 ## Overview
 
-Constellation Overwatch is designed as a distributed, event-driven C4 Industrial Data Fabric that brings together telemetry, video, and AI processing in a unified platform built on NATS JetStream for reliable, low-latency messaging with atomic operations and durable streams.
+Constellation Overwatch is an event-driven C4 Industrial Data Fabric for telemetry, video, commands, and AI events. NATS JetStream provides durable messaging, KV state, and low-latency pub/sub. Pulsar runs at the edge as the sync agent: it registers fleets, relays MAVLink, bridges RTSP video, publishes telemetry, and updates `CONSTELLATION_GLOBAL_STATE`.
 
 ## System Diagram
 
@@ -22,7 +22,7 @@ graph LR
         C1[Web Dashboard]
         C2[Mobile App]
         C3[CLI Tools]
-        C4[Edge Devices]
+        C4[Pulsar Edge Agent]
     end
     subgraph API_Gateway[API Gateway]
         API[REST API :8080]
@@ -56,13 +56,21 @@ graph LR
 <Mermaid chart="
 sequenceDiagram
     participant D as Drone/Robot
+    participant P as Pulsar
     participant N as NATS JetStream
     participant KV as KV Store (CONSTELLATION_GLOBAL_STATE)
     participant W as Workers (Entity/Telemetry/Event)
     participant A as API Service
     participant DB as SQLite DB
     participant UI as Web UI (SSE)
-    Note over D,UI: Entity Registration Flow
+    Note over D,UI: Boot: Fleet Registration
+    P->>A: Register org + entities from config/fleet.yaml
+    A->>DB: Upsert organization and entities
+    A->>N: Publish entity.created / entity.updated events
+    A->>KV: Sync entity to KV[entity_id]
+    A-->>P: Return entity UUIDs
+    P->>P: Write config/c4.json
+    Note over D,UI: Manual Entity Management
     UI->>A: POST /api/v1/entities
     A->>DB: INSERT entity
     A->>N: Publish entity.created event
@@ -71,10 +79,13 @@ sequenceDiagram
     N->>W: EntityWorker processes event
     W->>DB: Log entity creation
     W-->>UI: SSE update (if subscribed)
-    Note over D,UI: Telemetry Publishing Flow
-    D->>N: Publish to constellation.telemetry.{org_id}.{entity_id}
+    Note over D,UI: Runtime: Telemetry
+    D->>P: MAVLink UDP frames
+    P->>P: Parse frame, build TelemetryEnvelope
+    P->>N: Publish constellation.telemetry.{entity_id}.{msg_type}
     N->>N: Store in CONSTELLATION_TELEMETRY stream
     N->>W: TelemetryWorker receives message
+    P->>KV: Merge device state by message type
     W->>KV: Update entity state with latest telemetry
     KV-->>UI: KV watcher triggers SSE update
     UI->>UI: Datastar patches UI elements
@@ -82,8 +93,10 @@ sequenceDiagram
     UI->>A: POST command
     A->>N: Publish to constellation.commands.{org_id}.{entity_id}
     N->>N: Store in CONSTELLATION_COMMANDS stream
-    N->>D: CommandWorker delivers command
-    D->>N: Publish command.ack
+    N->>P: CommandWorker delivers command
+    P->>D: Send command over edge protocol
+    D->>P: Command acknowledgment
+    P->>N: Publish command.ack
     N->>W: Process acknowledgment
     W->>KV: Update command status
     KV-->>UI: SSE notification
@@ -140,17 +153,15 @@ Background event processors that drive the event-driven architecture:
 
 | Component | Purpose |
 | --------- | ------- |
-| **Aero Arc Relay** | MAVLink bridge for UAVs |
-| **Vision** | AI-powered video analysis |
-| **FFmpeg** | Low-latency video streaming |
+| **Pulsar** | Edge sync agent for fleet registration, MAVLink relay, RTSP video bridging, and optional YOLO overlay detection |
 
 ### Integration Layer
 
 | Protocol | Use Case |
 | -------- | -------- |
-| MAVLink | Drone communication |
-| RTSP/WebRTC | Video streaming |
-| REST/WebSocket | API and real-time updates |
+| MAVLink | Per-entity UDP telemetry into Pulsar |
+| RTSP/WebRTC/HLS | Pulsar video bridge and advertised playback endpoints |
+| REST/NATS/SSE | Fleet registration, JetStream ingest, API access, and live UI updates |
 
 ## Design Principles
 

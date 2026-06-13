@@ -3,46 +3,75 @@
 direction: right
 
 # ═══════════════════════════════════════════════════════════
-# EDGE DEVICE
+# SOURCE PLATFORMS
 # ═══════════════════════════════════════════════════════════
 
-uas: UAS Alpha-1 {
-  style.fill: "#e3f2fd"
+sources: Source Platforms {
+  style.fill: "#eef7ff"
   style.stroke: "#1565c0"
-  style.border-radius: 8
-  label: |md
-    **UAS Alpha-1**
-    MAVLink Telemetry
-    Camera Feed
-    entity_id: 1048bff5-...
-  |
-}
 
-# ═══════════════════════════════════════════════════════════
-# Overwatch Bridge & Integration LAYER
-# ═══════════════════════════════════════════════════════════
-
-relay: Constellation Overwatch Publishers {
-  style.fill: "#fff8e1"
-  style.stroke: "#ffa000"
-
-  aero-arc: aero-arc-relay {
-    style.fill: "#fff3e0"
-    style.stroke: "#ef6c00"
+  uas-alpha-1: UAS Alpha-1 {
+    style.fill: "#e3f2fd"
+    style.stroke: "#1565c0"
+    style.border-radius: 8
     label: |md
-      **aero-arc-relay**
-      UDP:14550
-      MAVLink → NATS
+      **UAS Alpha-1**<br />
+      MAVLink telemetry<br />
+      Camera feed
     |
   }
 
-  vision: vision2constellation {
+  sensor-platform: sensor-platform {
+    style.fill: "#e8f5e9"
+    style.stroke: "#2e7d32"
+    style.border-radius: 8
+    label: |md
+      **sensor-platform**<br />
+      Sensor payloads<br />
+      Site telemetry
+    |
+  }
+
+  ground-platform-y: ground-platform-y {
+    style.fill: "#fffde7"
+    style.stroke: "#f9a825"
+    style.border-radius: 8
+    label: |md
+      **ground-platform-y**<br />
+      Ground telemetry<br />
+      Camera feed
+    |
+  }
+}
+
+# ═══════════════════════════════════════════════════════════
+# PULSAR EDGE SYNC AGENT
+# ═══════════════════════════════════════════════════════════
+
+publisher: Pulsar {
+  style.fill: "#fff8e1"
+  style.stroke: "#ffa000"
+
+  ingest: Edge ingest {
     style.fill: "#fff3e0"
     style.stroke: "#ef6c00"
     label: |md
-      **vision2constellation**
-      RTSP Input
-      Object Detection
+      **Edge ingest**<br />
+      MAVLink<br />
+      RTSP<br />
+      sensor payloads
+    |
+  }
+
+  publish: Sync + publish {
+    style.fill: "#fff3e0"
+    style.stroke: "#ef6c00"
+    label: |md
+      **Sync + publish**<br />
+      fleet.yaml -> c4.json<br />
+      TelemetryEnvelope<br />
+      KV state merge<br />
+      events + endpoints
     |
   }
 }
@@ -95,7 +124,7 @@ overwatch: constellation-overwatch {
       style.fill: "#e8f5e9"
       style.stroke: "#2e7d32"
       label: |md
-        {entity_id} → EntityState
+        {entity_id} -> EntityState<br />
         TTL: 1h
       |
     }
@@ -106,8 +135,8 @@ overwatch: constellation-overwatch {
     style.fill: "#fce4ec"
     style.stroke: "#c2185b"
     label: |md
-      Multi-org Schema
-      entities, telemetry
+      Multi-org schema<br />
+      entities, telemetry<br />
       audit_logs
     |
   }
@@ -129,40 +158,50 @@ overwatch: constellation-overwatch {
 # CONNECTIONS
 # ═══════════════════════════════════════════════════════════
 
-# Edge to Relay
-uas -> relay.aero-arc: MAVLink UDP {
+# Sources to Pulsar
+sources.uas-alpha-1 -> publisher.ingest: MAVLink / RTSP {
   style.stroke: "#1565c0"
   style.stroke-width: 2
 }
 
-uas -> relay.vision: RTSP {
+sources.sensor-platform -> publisher.ingest: Sensor payloads {
+  style.stroke: "#2e7d32"
+  style.stroke-width: 2
+}
+
+sources.ground-platform-y -> publisher.ingest: Ground + video {
   style.stroke: "#7b1fa2"
   style.stroke-width: 2
 }
 
-# Relay to NATS
-relay.aero-arc -> overwatch.nats.telemetry: {
+publisher.ingest -> publisher.publish: Normalize {
+  style.stroke: "#ef6c00"
+}
+
+# Pulsar to Overwatch
+publisher.publish -> overwatch.api: Register fleet {
+  style.stroke: "#00838f"
+  style.stroke-width: 2
+}
+
+publisher.publish -> overwatch.nats.telemetry: TelemetryEnvelope {
   style.stroke: "#ef6c00"
   style.stroke-width: 2
 }
 
-relay.aero-arc -> overwatch.nats.kv: {
+publisher.publish -> overwatch.nats.kv: Merge device state {
   style.stroke: "#2e7d32"
   style.stroke-width: 2
 }
 
-relay.vision -> overwatch.nats.events: {
+publisher.publish -> overwatch.nats.events: Detection events {
   style.stroke: "#7b1fa2"
   style.stroke-width: 2
 }
 
-relay.vision -> overwatch.nats.video: {
+publisher.publish -> overwatch.nats.video: Video endpoints {
   style.stroke: "#c2185b"
   style.stroke-width: 2
-}
-
-relay.vision -> overwatch.nats.kv: {
-  style.stroke: "#2e7d32"
 }
 
 # Internal Overwatch
@@ -185,4 +224,3 @@ overwatch.db -> overwatch.api: {
 overwatch.api -> overwatch.web: {
   style.stroke: "#0277bd"
 }
-
